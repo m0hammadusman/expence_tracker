@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hisaab — Split Expenses</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Expensify — Split Expenses</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<!-- PDF Export Library -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 <style>
   :root {
     --bg: #faf8f5;
@@ -25,30 +25,118 @@
     --font-display: 'Playfair Display', serif;
     --font-body: 'DM Sans', sans-serif;
   }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
+
   body {
     background: var(--bg);
     color: var(--text);
     font-family: var(--font-body);
     min-height: 100vh;
-    background-image: radial-gradient(ellipse at 20% 20%, rgba(107, 61, 122, 0.08) 0%, transparent 60%), 
-                      radial-gradient(ellipse at 80% 80%, rgba(212, 175, 55, 0.05) 0%, transparent 60%);
+    background-image:
+      radial-gradient(ellipse at 20% 20%, rgba(107, 61, 122, 0.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 80%, rgba(212, 175, 55, 0.05) 0%, transparent 60%);
   }
 
   /* HEADER */
   .header {
-    padding: 28px 40px;
+    padding: 18px 24px;
     border-bottom: 2px solid var(--gold);
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 16px;
     background: linear-gradient(135deg, var(--dark) 0%, #3d2357 100%);
     box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-    position: sticky; top: 0; z-index: 100;
+    position: sticky;
+    top: 0;
+    z-index: 100;
   }
-  .logo { display: flex; align-items: baseline; gap: 12px; }
-  .logo-text { font-family: var(--font-display); font-size: 36px; font-weight: 900; background: linear-gradient(135deg, var(--gold) 0%, #f0d98b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -1px; }\n  .logo-urdu { font-size: 13px; color: var(--gold); font-weight: 500; }
-  .header-right { font-size: 12px; color: #d4c4b3; text-align: right; line-height: 1.6; }
+
+  .logo { display: flex; align-items: baseline; gap: 10px; }
+  .logo-text {
+    font-family: var(--font-display);
+    font-size: 34px;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--gold) 0%, #f0d98b 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+  .logo-urdu { font-size: 13px; color: var(--gold); font-weight: 600; }
+
+  /* NAV REDESIGN */
+  .nav-left, .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 120px;
+  }
+
+  .nav-center {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px;
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    border-radius: 999px;
+    background: rgba(0,0,0,0.12);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nav-center::-webkit-scrollbar { height: 0; }
+
+  .nav-pill {
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13px;
+    color: rgba(245, 240, 235, 0.88);
+    background: transparent;
+    padding: 10px 14px;
+    border-radius: 999px;
+    transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .nav-pill:hover {
+    color: #ffffff;
+    background: rgba(212, 175, 55, 0.10);
+  }
+
+  .nav-pill.active {
+    color: #1a0f2e;
+    background: linear-gradient(135deg, var(--gold) 0%, #f0d98b 100%);
+    box-shadow: 0 10px 24px rgba(212, 175, 55, 0.22);
+  }
+
+  .nav-icon-btn {
+    border: 1px solid rgba(212, 175, 55, 0.45);
+    background: rgba(0,0,0,0.12);
+    color: rgba(245, 240, 235, 0.92);
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav-icon-btn:hover {
+    transform: translateY(-1px);
+    background: rgba(212, 175, 55, 0.12);
+    color: #ffffff;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+  }
 
   /* LAYOUT */
   .app { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 73px); }
@@ -58,19 +146,30 @@
     background: linear-gradient(180deg, #f5f0eb 0%, #ede5de 100%);
     border-right: 2px solid var(--gold);
     padding: 28px 24px;
-    display: flex; flex-direction: column; gap: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
     box-shadow: inset -8px 0 16px rgba(0,0,0,0.02);
   }
+
   .section-title {
     font-family: var(--font-display);
-    font-size: 18px; font-weight: 700;
+    font-size: 18px;
+    font-weight: 700;
     color: var(--dark);
     margin-bottom: 12px;
-    display: flex; align-items: center; gap: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
-  .section-title::after { content: ''; flex: 1; height: 2px; background: linear-gradient(90deg, var(--gold), transparent); }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(90deg, var(--gold), transparent);
+  }
 
-  /* MEMBER INPUT */
+  /* INPUTS */
   .input-row { display: flex; gap: 8px; }
   input[type="text"], input[type="number"], select, textarea {
     background: var(--bg);
@@ -84,7 +183,10 @@
     transition: all 0.2s;
     width: 100%;
   }
-  input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(107, 61, 122, 0.1); }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(107, 61, 122, 0.1);
+  }
   input::placeholder, textarea::placeholder { color: var(--muted); }
 
   .btn {
@@ -110,13 +212,13 @@
     box-shadow: none;
   }
   .btn-outline:hover { background: rgba(107, 61, 122, 0.08); }
-  .btn-danger { background: linear-gradient(135deg, #e8b4b4, #dc9191); color: #7a3a3a; box-shadow: 0 4px 12px rgba(200, 90, 90, 0.2); }
-  .btn-danger:hover { box-shadow: 0 6px 16px rgba(200, 90, 90, 0.3); }
 
   /* MEMBER LIST */
   .member-list { display: flex; flex-direction: column; gap: 8px; }
   .member-chip {
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     background: linear-gradient(135deg, rgba(212, 175, 55, 0.05), rgba(250, 248, 245, 0.5));
     border: 1px solid var(--gold);
     border-radius: 8px;
@@ -127,22 +229,32 @@
   .member-chip:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(107, 61, 122, 0.1); }
   .member-chip-left { display: flex; align-items: center; gap: 10px; }
   .avatar {
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: 13px; color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    color: #ffffff;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
   .member-name { font-size: 14px; font-weight: 500; color: var(--text); }
   .remove-btn {
-    background: none; border: none; color: var(--muted);
-    cursor: pointer; font-size: 16px; padding: 2px 4px;
-    line-height: 1; transition: color 0.2s;
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 2px 4px;
+    line-height: 1;
+    transition: color 0.2s;
   }
   .remove-btn:hover { color: var(--red); }
 
   /* MAIN CONTENT */
-  .main { padding: 32px 40px; display: flex; flex-direction: column; gap: 32px; }
+  .main { padding: 32px 40px; display: flex; flex-direction: column; gap: 24px; }
 
   /* EXPENSE FORM */
   .expense-card {
@@ -159,7 +271,9 @@
   /* SPLIT SELECTOR */
   .split-grid { display: flex; flex-wrap: wrap; gap: 8px; }
   .split-chip {
-    display: flex; align-items: center; gap: 7px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
     background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -176,21 +290,6 @@
 
   .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
 
-  /* EXPORTS */
-  .export-buttons {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-  }
-  .btn-export {
-    padding: 10px 20px;
-    font-size: 13px;
-    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
-    color: white;
-    box-shadow: 0 4px 12px rgba(107, 61, 122, 0.2);
-  }
-
   /* EXPENSES LIST */
   .expenses-list { display: flex; flex-direction: column; gap: 12px; }
   .expense-item {
@@ -198,18 +297,16 @@
     border: 1px solid var(--gold);
     border-radius: 10px;
     padding: 16px 20px;
-    display: flex; align-items: flex-start; justify-content: space-between;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
     animation: slideIn 0.3s ease;
     position: relative;
     transition: all 0.2s;
     gap: 12px;
   }
   .expense-item:hover { border-color: var(--accent); box-shadow: 0 4px 12px rgba(107, 61, 122, 0.12); }
-  .expense-actions {
-    display: flex;
-    gap: 6px;
-    flex-shrink: 0;
-  }
+  .expense-actions { display: flex; gap: 6px; flex-shrink: 0; }
   .expense-actions button {
     background: none;
     border: none;
@@ -219,9 +316,7 @@
     color: var(--muted);
     transition: all 0.2s;
   }
-  .expense-actions button:hover {
-    color: var(--accent);
-  }
+  .expense-actions button:hover { color: var(--accent); }
   .expense-actions .btn-delete:hover { color: var(--red); }
   .expense-left { display: flex; align-items: center; gap: 14px; flex: 1; }
   .expense-icon {
@@ -234,7 +329,6 @@
   .expense-name { font-weight: 600; font-size: 15px; margin-bottom: 4px; color: var(--text); }
   .expense-meta { font-size: 12px; color: var(--muted); }
   .expense-amount { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--accent); text-align: right; }
-  .expense-amount-label { font-size: 10px; color: var(--muted); text-align: right; margin-top: 2px; }
 
   /* BALANCES */
   .balances-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
@@ -261,30 +355,51 @@
     border: 1px solid var(--gold);
     border-radius: 10px;
     padding: 14px 20px;
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     animation: fadeIn 0.3s ease;
     transition: all 0.2s;
     flex-wrap: wrap;
     gap: 8px;
   }
   .settlement-item:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(107, 61, 122, 0.08); }
-  .settlement-from { font-weight: 600; font-size: 14px; color: var(--text); }
-  .settlement-arrow { color: var(--muted); font-size: 18px; margin: 0 8px; }
-  .settlement-to { font-weight: 600; font-size: 14px; color: var(--text); }
+  .settlement-from, .settlement-to { font-weight: 600; font-size: 14px; color: var(--text); }
   .settlement-amount { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--accent); margin-left: auto; }
-  .settlement-pkr { font-size: 11px; color: var(--muted); margin-left: 4px; }
 
   .empty-state {
-    text-align: center; padding: 40px 20px;
-    color: var(--muted); font-size: 14px; background: var(--surface); border-radius: 10px; border: 1px dashed var(--border);
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-size: 14px;
+    background: var(--surface);
+    border-radius: 10px;
+    border: 1px dashed var(--border);
   }
   .empty-icon { font-size: 40px; margin-bottom: 12px; display: block; }
 
-  /* TABS */
-  .tabs { display: flex; gap: 2px; background: transparent; padding: 0; width: 100%; border-bottom: 2px solid var(--gold); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  /* TABS (keep your original section tabs as fallback) */
+  .tabs {
+    display: flex;
+    gap: 2px;
+    background: transparent;
+    padding: 0;
+    width: 100%;
+    border-bottom: 2px solid var(--gold);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
   .tab {
-    padding: 12px 16px; border-radius: 0; font-size: 14px; font-weight: 500; cursor: pointer;
-    transition: all 0.2s; color: var(--muted); background: none; border: none; font-family: var(--font-body);
+    padding: 12px 16px;
+    border-radius: 0;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--muted);
+    background: none;
+    border: none;
+    font-family: var(--font-body);
     border-bottom: 2px solid transparent;
     margin-bottom: -2px;
     white-space: nowrap;
@@ -293,21 +408,30 @@
   .tab:hover { color: var(--text); }
   .tab.active { color: var(--accent); border-bottom-color: var(--gold); }
 
-  /* ANIMATIONS */
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes slideIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
-
+  /* SUMMARY */
   .total-bar {
     background: linear-gradient(135deg, rgba(107, 61, 122, 0.08), rgba(139, 77, 159, 0.08));
     border: 1px solid var(--gold);
     border-radius: 12px;
     padding: 20px 24px;
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
   }
   .total-label { font-size: 13px; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
   .total-amount { font-family: var(--font-display); font-size: 28px; font-weight: 900; color: var(--accent); }
 
-  .select-all-btn { font-size: 12px; color: var(--accent); cursor: pointer; background: none; border: none; font-family: var(--font-body); padding: 0; font-weight: 600; }
+  .select-all-btn {
+    font-size: 12px;
+    color: var(--accent);
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: var(--font-body);
+    padding: 0;
+    font-weight: 600;
+  }
   .select-all-btn:hover { text-decoration: underline; }
 
   /* Scrollbar */
@@ -342,15 +466,14 @@
   }
   .stat-card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(107, 61, 122, 0.12); }
   .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; font-weight: 600; letter-spacing: 0.5px; }
-  .stat-value { font-size: 26px; font-weight: 700; color: var(--accent); font-family: 'Playfair Display', serif; }
+  .stat-value { font-size: 26px; font-weight: 700; color: var(--accent); font-family: var(--font-display); }
   .stat-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
 
   /* MODAL */
   .modal {
     display: none;
     position: fixed;
-    top: 0;
-    left: 0;
+    top: 0; left: 0;
     width: 100%;
     height: 100%;
     background: rgba(0,0,0,0.5);
@@ -371,13 +494,30 @@
     overflow-y: auto;
     box-shadow: 0 20px 60px rgba(0,0,0,0.2);
   }
-  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid var(--gold); }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--gold);
+  }
   .modal-title { font-size: 18px; font-weight: 700; color: var(--text); }
-  .modal-close { background: none; border: none; color: var(--muted); font-size: 24px; cursor: pointer; padding: 0; width: 24px; height: 24px; transition: color 0.2s; }
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    transition: color 0.2s;
+  }
   .modal-close:hover { color: var(--red); }
   .modal-form-group { margin-bottom: 16px; }
 
-  /* HISTORY SECTION */
+  /* HISTORY */
   .history-container { margin-top: 20px; }
   .history-item {
     background: var(--surface2);
@@ -390,326 +530,11 @@
   }
   .history-date { font-weight: 600; color: var(--text); margin-bottom: 4px; }
 
-  /* RESPONSIVE DESIGN */
-  /* Tablet & Small Screens (900px and below) */
-  @media (max-width: 900px) {
-    .app { grid-template-columns: 1fr; }
-    .sidebar { border-right: none; border-bottom: 1px solid var(--border); padding: 20px 20px; gap: 20px; }
-    .main { padding: 20px; gap: 20px; }
-    .form-grid { grid-template-columns: 1fr; }
-    .header { padding: 16px 20px; }
-    .logo-text { font-size: 24px; }
-    .balances-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-    .stats-container { grid-template-columns: repeat(2, 1fr); }
-    .expense-item { flex-direction: column; align-items: flex-start; }
-    .expense-left { width: 100%; margin-bottom: 12px; }
-  }
+  /* ANIMATIONS */
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
 
-  /* Mobile Phones (768px and below) */
-  @media (max-width: 768px) {
-    body { font-size: 14px; }
-    .header { padding: 14px 16px; }
-    .logo-text { font-size: 22px; }
-    .logo-urdu { font-size: 12px; }
-    .header-right { font-size: 11px; }
-    
-    .app { grid-template-columns: 1fr; }
-    .sidebar { padding: 16px; gap: 16px; }
-    .section-title { font-size: 16px; margin-bottom: 10px; }
-    
-    .main { padding: 16px; gap: 16px; }
-    .expense-card { padding: 16px; border-radius: 10px; }
-    .form-grid { grid-template-columns: 1fr; gap: 12px; }
-    .form-group { gap: 4px; }
-    .label { font-size: 11px; }
-    
-    input[type="text"], input[type="number"], select, textarea {
-      padding: 9px 12px;
-      font-size: 14px;
-      border-radius: 6px;
-    }
-    
-    .btn {
-      padding: 9px 14px;
-      font-size: 13px;
-      border-radius: 6px;
-    }
-    
-    .split-grid { gap: 6px; }
-    .split-chip { padding: 6px 10px; font-size: 12px; }
-    
-    .input-row { gap: 6px; }
-    .input-row input { font-size: 13px; }
-    
-    .member-list { gap: 6px; }
-    .member-chip { padding: 8px 10px; }
-    .member-name { font-size: 13px; }
-    .avatar { width: 28px; height: 28px; font-size: 12px; }
-    
-    .tabs { gap: 2px; }
-    .tab { padding: 10px 12px; font-size: 12px; }
-    
-    .expenses-list { gap: 10px; }
-    .expense-item { padding: 14px; border-radius: 8px; }
-    .expense-icon { width: 36px; height: 36px; font-size: 16px; }
-    .expense-name { font-size: 14px; }
-    .expense-meta { font-size: 11px; }
-    .expense-amount { font-size: 18px; }
-    .expense-actions { gap: 4px; }
-    .expense-actions button { font-size: 12px; }
-    
-    .balances-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
-    .balance-card { padding: 14px; }
-    .balance-member { font-size: 12px; margin-bottom: 6px; }
-    .balance-amount { font-size: 18px; }
-    .balance-label { font-size: 10px; }
-    
-    .settlement-item { padding: 12px; flex-direction: column; align-items: flex-start; }
-    .settlement-from { font-size: 13px; }
-    .settlement-arrow { font-size: 14px; margin: 8px 0; }
-    .settlement-to { font-size: 13px; }
-    .settlement-amount { font-size: 16px; }
-    
-    .stats-container { grid-template-columns: 1fr; gap: 10px; }
-    .stat-card { padding: 14px; }
-    .stat-label { font-size: 10px; margin-bottom: 6px; }
-    .stat-value { font-size: 20px; }
-    
-    .modal-content { padding: 20px; max-width: 90vw; }
-    .modal-title { font-size: 16px; }
-    .modal-header { margin-bottom: 16px; }
-    
-    .total-bar { flex-direction: column; gap: 8px; text-align: center; padding: 14px; }
-    .total-label { font-size: 12px; }
-    .total-amount { font-size: 24px; }
-    
-    .export-buttons { gap: 8px; }
-    .btn-export { padding: 8px 12px; font-size: 12px; }
-    
-    .empty-state { padding: 30px 16px; }
-    .empty-icon { font-size: 32px; }
-  }
-
-  /* Small Phones (480px and below) */
-  @media (max-width: 480px) {
-    body { font-size: 13px; }
-    .header { padding: 12px 12px; }
-    .logo { gap: 6px; }
-    .logo-text { font-size: 18px; }
-    .logo-urdu { font-size: 11px; }
-    .header-right { font-size: 10px; line-height: 1.4; }
-    
-    .sidebar { padding: 12px; gap: 12px; }
-    .section-title { font-size: 14px; }
-    .section-title::after { height: 1px; }
-    
-    .main { padding: 12px; gap: 12px; }
-    .expense-card { padding: 12px; }
-    .form-grid { gap: 10px; }
-    
-    input[type="text"], input[type="number"], select, textarea {
-      padding: 8px 10px;
-      font-size: 13px;
-      border-radius: 6px;
-    }
-    
-    .btn {
-      padding: 8px 12px;
-      font-size: 12px;
-    }
-    .btn-sm { padding: 6px 10px; font-size: 11px; }
-    
-    .split-grid { gap: 5px; }
-    .split-chip { padding: 5px 8px; font-size: 11px; }
-    .split-chip .dot { width: 6px; height: 6px; }
-    
-    .input-row { gap: 5px; flex-wrap: wrap; }
-    
-    .member-chip { padding: 7px 8px; }
-    .member-name { font-size: 12px; }
-    .avatar { width: 26px; height: 26px; font-size: 11px; }
-    .remove-btn { font-size: 14px; }
-    
-    .tab { padding: 8px 10px; font-size: 11px; }
-    .tabs { gap: 1px; }
-    
-    .expense-item { padding: 12px; gap: 8px; }
-    .expense-left { gap: 10px; }
-    .expense-icon { width: 32px; height: 32px; font-size: 14px; }
-    .expense-name { font-size: 13px; margin-bottom: 2px; }
-    .expense-meta { font-size: 10px; }
-    .expense-amount { font-size: 16px; }
-    .expense-actions button { font-size: 11px; padding: 2px 4px; }
-    
-    .balances-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
-    .balance-card { padding: 12px; }
-    .balance-member { font-size: 11px; margin-bottom: 6px; gap: 4px; }
-    .balance-amount { font-size: 16px; }
-    
-    .settlement-list { gap: 8px; }
-    .settlement-item { padding: 10px; }
-    .settlement-from { font-size: 12px; }
-    .settlement-arrow { font-size: 12px; margin: 6px 0; }
-    .settlement-to { font-size: 12px; }
-    .settlement-amount { font-size: 14px; }
-    
-    .stats-container { grid-template-columns: 1fr; gap: 8px; }
-    .stat-card { padding: 12px; }
-    .stat-label { font-size: 9px; margin-bottom: 4px; }
-    .stat-value { font-size: 18px; }
-    .stat-note { font-size: 11px; }
-    
-    .modal { padding: 12px; }
-    .modal-content { padding: 16px; }
-    .modal-title { font-size: 15px; }
-    
-    .total-bar { padding: 12px; }
-    .total-label { font-size: 11px; }
-    .total-amount { font-size: 20px; }
-    
-    .export-buttons { gap: 8px; }
-    .btn-export { padding: 8px 12px; font-size: 12px; }
-    
-    .empty-state { padding: 30px 16px; }
-    .empty-icon { font-size: 32px; }
-    
-    .form-actions { flex-direction: column; }
-    .form-actions .btn { width: 100%; }
-  }
-
-  /* Small Phones (480px and below) */
-  @media (max-width: 480px) {
-    body { font-size: 13px; }
-    .header { padding: 12px 12px; }
-    .logo { gap: 6px; }
-    .logo-text { font-size: 18px; }
-    .logo-urdu { font-size: 11px; }
-    .header-right { font-size: 10px; line-height: 1.4; }
-    
-    .sidebar { padding: 12px; gap: 12px; }
-    .section-title { font-size: 14px; }
-    .section-title::after { height: 1px; }
-    
-    .main { padding: 12px; gap: 12px; }
-    .expense-card { padding: 12px; }
-    .form-grid { gap: 10px; }
-    
-    input[type="text"], input[type="number"], select, textarea {
-      padding: 8px 10px;
-      font-size: 13px;
-      border-radius: 6px;
-    }
-    
-    .btn {
-      padding: 8px 12px;
-      font-size: 12px;
-    }
-    .btn-sm { padding: 6px 10px; font-size: 11px; }
-    
-    .split-grid { gap: 5px; }
-    .split-chip { padding: 5px 8px; font-size: 11px; }
-    .split-chip .dot { width: 6px; height: 6px; }
-    
-    .input-row { gap: 5px; flex-wrap: wrap; }
-    
-    .member-chip { padding: 7px 8px; }
-    .member-name { font-size: 12px; }
-    .avatar { width: 26px; height: 26px; font-size: 11px; }
-    .remove-btn { font-size: 14px; }
-    
-    .tab { padding: 8px 10px; font-size: 11px; }
-    .tabs { gap: 1px; }
-    
-    .expense-item { padding: 12px; gap: 8px; }
-    .expense-left { gap: 10px; }
-    .expense-icon { width: 32px; height: 32px; font-size: 14px; }
-    .expense-name { font-size: 13px; margin-bottom: 2px; }
-    .expense-meta { font-size: 10px; }
-    .expense-amount { font-size: 16px; }
-    .expense-actions button { font-size: 11px; padding: 2px 4px; }
-    
-    .balances-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
-    .balance-card { padding: 12px; }
-    .balance-member { font-size: 11px; margin-bottom: 6px; gap: 4px; }
-    .balance-amount { font-size: 16px; }
-    
-    .settlement-list { gap: 8px; }
-    .settlement-item { padding: 10px; }
-    .settlement-from { font-size: 12px; }
-    .settlement-arrow { font-size: 12px; margin: 6px 0; }
-    .settlement-to { font-size: 12px; }
-    .settlement-amount { font-size: 14px; }
-    
-    .stats-container { grid-template-columns: 1fr; gap: 8px; }
-    .stat-card { padding: 12px; }
-    .stat-label { font-size: 9px; margin-bottom: 4px; }
-    .stat-value { font-size: 18px; }
-    .stat-note { font-size: 11px; }
-    
-    .modal { padding: 12px; }
-    .modal-content { padding: 16px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
-    .modal-title { font-size: 15px; }
-    .modal-form-group { margin-bottom: 12px; }
-    
-    .total-bar { padding: 12px; }
-    .total-label { font-size: 11px; }
-    .total-amount { font-size: 20px; }
-    
-    .export-buttons { gap: 6px; }
-    .btn-export { padding: 7px 10px; font-size: 11px; }
-    
-    .history-item { padding: 10px 12px; font-size: 11px; }
-    
-    .form-actions { flex-direction: column; gap: 8px; }
-    .form-actions .btn { width: 100%; padding: 10px; font-size: 13px; }
-  }
-
-  /* Extra Small Phones (Below 360px) */
-  @media (max-width: 360px) {
-    .header { padding: 10px; }
-    .logo-text { font-size: 16px; }
-    .logo-urdu { font-size: 10px; }
-    .header-right { font-size: 9px; }
-    
-    .sidebar { padding: 10px; gap: 10px; }
-    .section-title { font-size: 13px; margin-bottom: 8px; }
-    
-    .main { padding: 10px; gap: 10px; }
-    
-    input[type="text"], input[type="number"], select, textarea {
-      padding: 7px 8px;
-      font-size: 12px;
-    }
-    
-    .btn { padding: 7px 10px; font-size: 11px; }
-    .btn-sm { padding: 5px 8px; font-size: 10px; }
-    
-    .expense-card { padding: 10px; }
-    .form-grid { gap: 8px; }
-    
-    .member-chip { padding: 6px 8px; }
-    .avatar { width: 24px; height: 24px; font-size: 10px; }
-    
-    .expense-item { padding: 10px; }
-    .expense-icon { width: 28px; height: 28px; font-size: 12px; }
-    .expense-amount { font-size: 14px; }
-    
-    .balance-card { padding: 10px; }
-    .balance-amount { font-size: 14px; }
-    
-    .stat-card { padding: 10px; }
-    .stat-value { font-size: 16px; }
-    
-    .modal-content { padding: 12px; }
-    .modal-title { font-size: 14px; }
-    
-    .total-amount { font-size: 18px; }
-    
-    body { overflow-x: hidden; }
-    .app { overflow-x: hidden; }
-  }
-
-  /* NOTIFICATION SYSTEM */
+  /* NOTIFICATIONS */
   .notification-container {
     position: fixed;
     top: 20px;
@@ -736,55 +561,15 @@
     backdrop-filter: blur(8px);
   }
 
-  .notification.success {
-    background: linear-gradient(135deg, #5d8b6a 0%, #4a6d54 100%);
-    color: white;
-    border: 1px solid var(--gold);
-  }
+  .notification.success { background: linear-gradient(135deg, #5d8b6a 0%, #4a6d54 100%); color: white; border: 1px solid var(--gold); }
+  .notification.error   { background: linear-gradient(135deg, #c85a5a 0%, #b04949 100%); color: white; border: 1px solid var(--gold); }
+  .notification.warning { background: linear-gradient(135deg, #d4a574 0%, #c69563 100%); color: white; border: 1px solid var(--gold); }
+  .notification.info    { background: linear-gradient(135deg, #6b3d7a 0%, #8b4d9f 100%); color: white; border: 1px solid var(--gold); }
 
-  .notification.error {
-    background: linear-gradient(135deg, #c85a5a 0%, #b04949 100%);
-    color: white;
-    border: 1px solid var(--gold);
-  }
-
-  .notification.warning {
-    background: linear-gradient(135deg, #d4a574 0%, #c69563 100%);
-    color: white;
-    border: 1px solid var(--gold);
-  }
-
-  .notification.info {
-    background: linear-gradient(135deg, #6b3d7a 0%, #8b4d9f 100%);
-    color: white;
-    border: 1px solid var(--gold);
-  }
-
-  .notification-icon {
-    font-size: 18px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .notification-content {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    flex: 1;
-  }
-
-  .notification-title {
-    font-weight: 600;
-    font-size: 13px;
-  }
-
-  .notification-message {
-    font-weight: 400;
-    font-size: 12px;
-    opacity: 0.95;
-  }
+  .notification-icon { font-size: 18px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .notification-content { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+  .notification-title { font-weight: 600; font-size: 13px; }
+  .notification-message { font-weight: 400; font-size: 12px; opacity: 0.95; }
 
   .notification-close {
     background: none;
@@ -798,64 +583,81 @@
     transition: opacity 0.2s;
     flex-shrink: 0;
   }
-
-  .notification-close:hover {
-    opacity: 1;
-  }
+  .notification-close:hover { opacity: 1; }
 
   @keyframes slideInNotification {
-    from {
-      transform: translateX(400px);
-      opacity: 0;
-    }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
+    from { transform: translateX(400px); opacity: 0; }
+    to   { transform: translateX(0); opacity: 1; }
   }
-
   @keyframes slideOutNotification {
-    from {
-      transform: translateX(0);
-      opacity: 1;
-    }
-    to {
-      transform: translateX(400px);
-      opacity: 0;
-    }
+    from { transform: translateX(0); opacity: 1; }
+    to   { transform: translateX(400px); opacity: 0; }
+  }
+  .notification.removing { animation: slideOutNotification 0.3s ease-out forwards; }
+
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { border-right: none; border-bottom: 1px solid var(--border); padding: 20px; gap: 20px; }
+    .main { padding: 20px; gap: 20px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .header { padding: 14px 16px; }
+    .logo-text { font-size: 24px; }
+    .balances-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+    .stats-container { grid-template-columns: repeat(2, 1fr); }
+    .expense-item { flex-direction: column; align-items: flex-start; }
+    .expense-left { width: 100%; margin-bottom: 12px; }
+    .nav-center { display: none; }
+    .nav-left, .nav-right { min-width: auto; }
   }
 
-  .notification.removing {
-    animation: slideOutNotification 0.3s ease-out forwards;
-  }
-
-  /* Mobile Notifications */
   @media (max-width: 768px) {
-    .notification-container {
-      top: 10px;
-      right: 10px;
-      left: 10px;
-    }
+    .notification-container { top: 10px; right: 10px; left: 10px; }
+    .notification { min-width: unset; width: 100%; margin: 0 auto; }
 
-    .notification {
-      min-width: unset;
-      width: 100%;
-      margin: 0 auto;
-    }
+    .stats-container { grid-template-columns: 1fr; gap: 10px; }
+    .stat-card { padding: 14px; }
+    .stat-label { font-size: 10px; margin-bottom: 6px; }
+    .stat-value { font-size: 20px; }
+
+    .total-bar { flex-direction: column; gap: 8px; text-align: center; padding: 14px; }
+    .total-amount { font-size: 24px; }
+  }
+
+  @media (max-width: 480px) {
+    .logo-text { font-size: 20px; }
+    .logo-urdu { font-size: 11px; }
+
+    .main { padding: 12px; gap: 12px; }
+    .expense-card { padding: 12px; }
+    .form-actions { flex-direction: column; }
+    .form-actions .btn { width: 100%; }
   }
 </style>
 </head>
+
 <body>
 
-<!-- NOTIFICATION CONTAINER -->
 <div id="notificationContainer" class="notification-container"></div>
 
+<!-- HEADER / NAV -->
 <div class="header">
-  <div class="logo">
-    <span class="logo-text">Hisaab</span>
-    <span class="logo-urdu">حساب</span>
+  <div class="nav-left">
+    <div class="logo">
+      <span class="logo-text">Expensify</span>
+      
+    </div>
   </div>
- 
+
+  <nav class="nav-center" aria-label="Primary">
+    <button class="nav-pill active" onclick="navGo('expenses', this)">Expenses</button>
+    <button class="nav-pill" onclick="navGo('balances', this)">Balances</button>
+    <button class="nav-pill" onclick="navGo('settlement', this)">Settlement</button>
+    <button class="nav-pill" onclick="navGo('stats', this)">Stats</button>
+    <button class="nav-pill" onclick="navGo('history', this)">History</button>
+  </nav>
+
+  <div class="nav-right">
+  </div>
 </div>
 
 <div class="app">
@@ -886,6 +688,14 @@
           <div class="total-label">Expenses</div>
           <div style="font-size:24px;font-weight:700;font-family:var(--font-display)" id="expenseCount">0</div>
         </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Actions</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="btn btn-sm" style="width:100%;background:linear-gradient(135deg,#5d8b6a 0%,#4a6d54 100%)" onclick="exportPDF()">📄 Export PDF</button>
+        <button class="btn btn-sm" style="width:100%;background:linear-gradient(135deg,#c85a5a 0%,#b04949 100%)" onclick="clearAllData()">🧹 Reset All</button>
       </div>
     </div>
   </div>
@@ -943,19 +753,14 @@
       </div>
     </div>
 
-    <!-- Export Button -->
-    <div style="margin-bottom: 20px;">
-      <button class="btn btn-export" onclick="exportPDF()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 28px; font-size: 14px; box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);">📄 Export as PDF</button>
-    </div>
-
-    <!-- Tabs: Expenses | Balances | Settlement | Stats | History -->
+    <!-- Tabs fallback (mobile + if header pills hidden) -->
     <div>
       <div class="tabs" style="margin-bottom:20px">
-        <button class="tab active" onclick="showTab('expenses',this)">Expenses</button>
-        <button class="tab" onclick="showTab('balances',this)">Balances</button>
-        <button class="tab" onclick="showTab('settlement',this)">Settlement</button>
-        <button class="tab" onclick="showTab('stats',this)">Stats</button>
-        <button class="tab" onclick="showTab('history',this)">History</button>
+        <button class="tab active" onclick="showTab('expenses',this); syncNavFromTab('expenses')">Expenses</button>
+        <button class="tab" onclick="showTab('balances',this); syncNavFromTab('balances')">Balances</button>
+        <button class="tab" onclick="showTab('settlement',this); syncNavFromTab('settlement')">Settlement</button>
+        <button class="tab" onclick="showTab('stats',this); syncNavFromTab('stats')">Stats</button>
+        <button class="tab" onclick="showTab('history',this); syncNavFromTab('history')">History</button>
       </div>
 
       <!-- EXPENSES TAB -->
@@ -1007,8 +812,8 @@
           </div>
         </div>
       </div>
-
     </div>
+
   </div>
 </div>
 
@@ -1052,24 +857,17 @@
   </div>
 </div>
 
-
-
 <script>
 const COLORS = ['#6b3d7a','#8b4d9f','#5d8b6a','#d4af37','#c85a5a','#a86fbf','#d9a876','#9d5d8f','#d4a574','#7b5d9e'];
 
-// NOTIFICATION SYSTEM
+/* NOTIFICATIONS */
 function showNotification(type, title, message = '', duration = 4000) {
   const container = document.getElementById('notificationContainer');
   const notification = document.createElement('div');
   notification.className = `notification ${type}`;
-  
-  const iconMap = {
-    success: '✓',
-    error: '✕',
-    warning: '⚠',
-    info: 'ℹ'
-  };
-  
+
+  const iconMap = { success: '✓', error: '✕', warning: '⚠', info: 'ℹ' };
+
   notification.innerHTML = `
     <div class="notification-icon">${iconMap[type] || iconMap.info}</div>
     <div class="notification-content">
@@ -1078,9 +876,9 @@ function showNotification(type, title, message = '', duration = 4000) {
     </div>
     <button class="notification-close" onclick="this.parentElement.remove()">✕</button>
   `;
-  
+
   container.appendChild(notification);
-  
+
   if (duration > 0) {
     setTimeout(() => {
       notification.classList.add('removing');
@@ -1089,6 +887,7 @@ function showNotification(type, title, message = '', duration = 4000) {
   }
 }
 
+/* DATA */
 let members = [];
 let expenses = [];
 let archivedExpenses = [];
@@ -1096,25 +895,25 @@ let selectedSplit = new Set();
 let memberIdCounter = 1;
 let editingExpenseId = null;
 
-// STORAGE FUNCTIONS
+/* STORAGE */
 function saveData() {
-  localStorage.setItem('hisaab_members', JSON.stringify(members));
-  localStorage.setItem('hisaab_expenses', JSON.stringify(expenses));
-  localStorage.setItem('hisaab_archived', JSON.stringify(archivedExpenses));
-  localStorage.setItem('hisaab_counter', String(memberIdCounter));
+  localStorage.setItem('expensify_members', JSON.stringify(members));
+  localStorage.setItem('expensify_expenses', JSON.stringify(expenses));
+  localStorage.setItem('expensify_archived', JSON.stringify(archivedExpenses));
+  localStorage.setItem('expensify_counter', String(memberIdCounter));
 }
 
 function loadData() {
-  const savedMembers = localStorage.getItem('hisaab_members');
-  const savedExpenses = localStorage.getItem('hisaab_expenses');
-  const savedArchived = localStorage.getItem('hisaab_archived');
-  const savedCounter = localStorage.getItem('hisaab_counter');
-  
+  const savedMembers = localStorage.getItem('expensify_members');
+  const savedExpenses = localStorage.getItem('expensify_expenses');
+  const savedArchived = localStorage.getItem('expensify_archived');
+  const savedCounter = localStorage.getItem('expensify_counter');
+
   if (savedMembers) members = JSON.parse(savedMembers);
   if (savedExpenses) expenses = JSON.parse(savedExpenses);
   if (savedArchived) archivedExpenses = JSON.parse(savedArchived);
-  if (savedCounter) memberIdCounter = parseInt(savedCounter);
-  
+  if (savedCounter) memberIdCounter = parseInt(savedCounter, 10);
+
   return savedMembers !== null;
 }
 
@@ -1122,25 +921,62 @@ function clearAllData() {
   if (confirm('Are you sure? This will delete all members and expenses.')) {
     members = [];
     expenses = [];
+    archivedExpenses = [];
     memberIdCounter = 1;
     selectedSplit.clear();
-    localStorage.removeItem('hisaab_members');
-    localStorage.removeItem('hisaab_expenses');
-    localStorage.removeItem('hisaab_counter');
+    localStorage.removeItem('expensify_members');
+    localStorage.removeItem('expensify_expenses');
+    localStorage.removeItem('expensify_archived');
+    localStorage.removeItem('expensify_counter');
     location.reload();
   }
 }
 
+/* NAV HELPERS */
+function setActiveNav(btn) {
+  document.querySelectorAll('.nav-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function navGo(name, btn) {
+  setActiveNav(btn);
+  const tabBtnMap = {
+    expenses:  document.querySelectorAll('.tab')[0],
+    balances:  document.querySelectorAll('.tab')[1],
+    settlement:document.querySelectorAll('.tab')[2],
+    stats:     document.querySelectorAll('.tab')[3],
+    history:   document.querySelectorAll('.tab')[4]
+  };
+  showTab(name, tabBtnMap[name] || document.querySelectorAll('.tab')[0]);
+}
+
+function syncNavFromTab(name) {
+  const map = { expenses: 0, balances: 1, settlement: 2, stats: 3, history: 4 };
+  const idx = map[name];
+  const pills = document.querySelectorAll('.nav-pill');
+  if (pills && pills[idx]) {
+    document.querySelectorAll('.nav-pill').forEach(b => b.classList.remove('active'));
+    pills[idx].classList.add('active');
+  }
+}
+
+/* MEMBERS */
 function addMember() {
   const input = document.getElementById('memberInput');
   const name = input.value.trim();
   if (!name) return;
+
   if (members.find(m => m.name.toLowerCase() === name.toLowerCase())) {
     showNotification('warning', 'Member Exists', 'This member is already in the group');
     return;
   }
-  // Use a simple integer counter to avoid float ID bugs
-  members.push({ id: memberIdCounter++, name, color: COLORS[members.length % COLORS.length] });
+
+  members.push({
+    id: memberIdCounter++,
+    name,
+    color: COLORS[members.length % COLORS.length]
+  });
+
   input.value = '';
   saveData();
   renderMembers();
@@ -1152,6 +988,7 @@ function removeMember(id) {
   const member = members.find(m => m.id === id);
   const name = member?.name || 'Member';
   members = members.filter(m => m.id !== id);
+  selectedSplit.delete(Number(id));
   saveData();
   renderMembers();
   updateSelectors();
@@ -1162,9 +999,14 @@ function removeMember(id) {
 function renderMembers() {
   const list = document.getElementById('memberList');
   if (!members.length) {
-    list.innerHTML = `<div class="empty-state" style="padding:24px;margin:0;border:none;background:none"><span style="font-size:32px;display:block;margin-bottom:8px">👥</span><span style="font-size:13px">Add members to start</span></div>`;
+    list.innerHTML = `
+      <div class="empty-state" style="padding:24px;margin:0;border:none;background:none">
+        <span style="font-size:32px;display:block;margin-bottom:8px">👥</span>
+        <span style="font-size:13px">Add members to start</span>
+      </div>`;
     return;
   }
+
   list.innerHTML = members.map(m => `
     <div class="member-chip">
       <div class="member-chip-left">
@@ -1177,18 +1019,18 @@ function renderMembers() {
 }
 
 function updateSelectors() {
-  // Paid by dropdown
   const paidBy = document.getElementById('expPaidBy');
   const cur = Number(paidBy.value);
+
   paidBy.innerHTML = '<option value="">— Select payer —</option>' +
     members.map(m => `<option value="${m.id}" ${m.id === cur ? 'selected' : ''}>${m.name}</option>`).join('');
 
-  // Split grid
   const grid = document.getElementById('splitGrid');
   if (!members.length) {
     grid.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px">Add members first</div>';
     return;
   }
+
   grid.innerHTML = members.map(m => {
     const isSelected = selectedSplit.has(Number(m.id));
     return `
@@ -1214,6 +1056,7 @@ function selectAllMembers() {
   showNotification('success', 'All Selected', `${members.length} members selected for split`);
 }
 
+/* EXPENSES */
 function clearForm() {
   document.getElementById('expDesc').value = '';
   document.getElementById('expAmount').value = '';
@@ -1224,13 +1067,11 @@ function clearForm() {
 
 function addExpense() {
   const desc = document.getElementById('expDesc').value.trim();
-  // Convert Eastern Arabic/Urdu numerals then parse
   const rawVal = document.getElementById("expAmount").value
-    .replace(/[\u0660-\u0669]/g, function(d){ return d.charCodeAt(0) - 0x0660; })
-    .replace(/[\u06F0-\u06F9]/g, function(d){ return d.charCodeAt(0) - 0x06F0; })
+    .replace(/[\u0660-\u0669]/g, d => d.charCodeAt(0) - 0x0660)
+    .replace(/[\u06F0-\u06F9]/g, d => d.charCodeAt(0) - 0x06F0)
     .replace(/[^0-9.]/g, "");
   const amount = parseFloat(rawVal);
-  // Use Number() not parseInt() to preserve the exact integer ID stored in option value
   const paidById = Number(document.getElementById('expPaidBy').value);
   const category = document.getElementById('expCategory').value;
 
@@ -1241,8 +1082,10 @@ function addExpense() {
 
   expenses.push({
     id: memberIdCounter++,
-    desc, amount, paidById, category,
-    // Store split as array of number IDs (not strings)
+    desc,
+    amount,
+    paidById,
+    category,
     splitBetween: [...selectedSplit].map(Number),
     date: new Date().toLocaleDateString('en-GB')
   });
@@ -1262,6 +1105,8 @@ function deleteExpense(id) {
   showNotification('success', 'Expense Deleted', `${expense?.desc || 'Expense'} has been removed`);
 }
 
+function getMember(id) { return members.find(m => m.id === id); }
+
 function renderAll() {
   renderExpenses();
   renderBalances();
@@ -1269,14 +1114,13 @@ function renderAll() {
   updateSummary();
 }
 
-function getMember(id) { return members.find(m => m.id === id); }
-
 function renderExpenses() {
   const list = document.getElementById('expensesList');
   if (!expenses.length) {
     list.innerHTML = `<div class="empty-state"><span class="empty-icon">📋</span>No expenses yet. Add your first one above!</div>`;
     return;
   }
+
   list.innerHTML = expenses.map(e => {
     const payer = getMember(e.paidById);
     const split = e.splitBetween.map(id => getMember(id)?.name).filter(Boolean).join(', ');
@@ -1291,10 +1135,8 @@ function renderExpenses() {
             <div class="expense-meta">${e.date} · ₨${formatPKR(perPerson)}/person</div>
           </div>
         </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <div>
-            <div class="expense-amount">₨ ${formatPKR(e.amount)}</div>
-          </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="expense-amount">₨ ${formatPKR(e.amount)}</div>
           <div class="expense-actions">
             <button class="btn-edit" onclick="openEditModal(${e.id})" title="Edit">✏️</button>
             <button class="btn-delete" onclick="deleteExpense(${e.id})" title="Delete">🗑️</button>
@@ -1306,8 +1148,6 @@ function renderExpenses() {
 }
 
 function computeBalances() {
-  // net[memberId] = total_paid - total_owed
-  // Positive = gets back money, Negative = owes money
   const net = {};
   members.forEach(m => { net[m.id] = 0; });
 
@@ -1316,16 +1156,10 @@ function computeBalances() {
     if (n === 0) return;
     const share = e.amount / n;
 
-    // Payer gets credit for full amount
-    if (net[e.paidById] !== undefined) {
-      net[e.paidById] += e.amount;
-    }
+    if (net[e.paidById] !== undefined) net[e.paidById] += e.amount;
 
-    // Everyone in the split owes their share
     e.splitBetween.forEach(mid => {
-      if (net[mid] !== undefined) {
-        net[mid] -= share;
-      }
+      if (net[mid] !== undefined) net[mid] -= share;
     });
   });
 
@@ -1342,13 +1176,13 @@ function renderBalances() {
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><span class="empty-icon">⚖️</span>Add expenses to see balances</div>`;
     return;
   }
+
   const net = computeBalances();
   grid.innerHTML = members.map(m => {
     const bal = net[m.id] !== undefined ? net[m.id] : 0;
     const THRESHOLD = 0.005;
     const cls = bal > THRESHOLD ? 'positive' : bal < -THRESHOLD ? 'negative' : 'neutral';
     const label = bal > THRESHOLD ? 'gets back' : bal < -THRESHOLD ? 'owes' : 'settled ✓';
-    // Show exact amount (round to 2 decimal places for display, but keep precision for calculation)
     const display = Math.abs(bal) < 0.005 ? '0' : formatPKR(Math.abs(bal));
     return `
       <div class="balance-card">
@@ -1363,7 +1197,7 @@ function renderBalances() {
   }).join('');
 }
 
-// Format PKR: fully manual formatter — no toLocaleString (all locale variants can be buggy)
+/* PKR formatter */
 function formatPKR(amount) {
   const rounded = Math.round(amount * 100) / 100;
   const isWhole = Number.isInteger(rounded);
@@ -1384,27 +1218,23 @@ function renderSettlement() {
   const net = computeBalances();
   const THRESHOLD = 0.005;
 
-  // Build debtor/creditor lists using exact float values
   const debtors = [];
   const creditors = [];
+
   Object.entries(net).forEach(([id, bal]) => {
-    // Round to 2 decimal places to eliminate floating-point noise
     const b = Math.round(bal * 100) / 100;
     if (b > THRESHOLD) creditors.push({ id: Number(id), amt: b });
     else if (b < -THRESHOLD) debtors.push({ id: Number(id), amt: -b });
   });
 
   const transactions = [];
-  // Work on copies
   const d = debtors.map(x => ({ ...x }));
   const c = creditors.map(x => ({ ...x }));
 
   let i = 0, j = 0;
   while (i < d.length && j < c.length) {
     const amount = Math.round(Math.min(d[i].amt, c[j].amt) * 100) / 100;
-    if (amount > THRESHOLD) {
-      transactions.push({ from: d[i].id, to: c[j].id, amount });
-    }
+    if (amount > THRESHOLD) transactions.push({ from: d[i].id, to: c[j].id, amount });
     d[i].amt = Math.round((d[i].amt - amount) * 100) / 100;
     c[j].amt = Math.round((c[j].amt - amount) * 100) / 100;
     if (d[i].amt <= THRESHOLD) i++;
@@ -1428,7 +1258,7 @@ function renderSettlement() {
               <div class="avatar" style="background:${from?.color};width:32px;height:32px">${from?.name[0].toUpperCase()}</div>
               <span class="settlement-from">${from?.name}</span>
             </div>
-            <div style="display:flex;align-items:center;gap:4px;color:var(--muted)">
+            <div style="display:flex;align-items:center;gap:6px;color:var(--muted)">
               <span>pays</span>
               <span style="font-size:20px">→</span>
             </div>
@@ -1452,6 +1282,7 @@ function updateSummary() {
   document.getElementById('expenseCount').textContent = expenses.length;
 }
 
+/* TABS */
 function showTab(name, el) {
   ['expenses','balances','settlement','stats','history'].forEach(t => {
     document.getElementById('tab-'+t).style.display = 'none';
@@ -1464,12 +1295,7 @@ function showTab(name, el) {
   if (name === 'history') renderHistory();
 }
 
-// Allow Enter to add members
-document.getElementById('memberInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') addMember();
-});
-
-// EDIT EXPENSE FUNCTIONS
+/* EDIT MODAL */
 function openEditModal(expenseId) {
   editingExpenseId = expenseId;
   const expense = expenses.find(e => e.id === expenseId);
@@ -1478,10 +1304,12 @@ function openEditModal(expenseId) {
   document.getElementById('editDesc').value = expense.desc;
   document.getElementById('editAmount').value = expense.amount;
   document.getElementById('editCategory').value = expense.category;
-  
+
   const paidBySelect = document.getElementById('editPaidBy');
-  paidBySelect.innerHTML = members.map(m => `<option value="${m.id}" ${m.id === expense.paidById ? 'selected' : ''}>${m.name}</option>`).join('');
-  
+  paidBySelect.innerHTML = members
+    .map(m => `<option value="${m.id}" ${m.id === expense.paidById ? 'selected' : ''}>${m.name}</option>`)
+    .join('');
+
   document.getElementById('editModal').classList.add('active');
 }
 
@@ -1515,115 +1343,21 @@ function saveEditedExpense() {
   showNotification('success', 'Expense Updated', `${desc} has been updated successfully`);
 }
 
-// EXPORT FUNCTIONS
-function exportCSV() {
-  if (expenses.length === 0) {
-    showNotification('info', 'No Expenses', 'Add some expenses before exporting');
-    return;
-  }
-
-  let csv = 'Description,Amount (₨),Paid By,Category,Date,Split Between\n';
-  expenses.forEach(e => {
-    const payer = getMember(e.paidById)?.name || '?';
-    const split = e.splitBetween.map(id => getMember(id)?.name).filter(Boolean).join('; ');
-    csv += `"${e.desc}",${e.amount},"${payer}","${e.category}","${e.date}","${split}"\n`;
-  });
-
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
-  link.setAttribute('href', url);
-  link.setAttribute('download', `hisaab_expenses_${new Date().toISOString().slice(0,10)}.csv`);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  showNotification('success', 'CSV Exported', `${expenses.length} expenses exported successfully`);
-}
-
-function exportJSON() {
-  if (expenses.length === 0) {
-    showNotification('info', 'No Expenses', 'Add some expenses before exporting');
-    return;
-  }
-
-  const data = {
-    members: members,
-    expenses: expenses,
-    exportDate: new Date().toISOString(),
-    totalAmount: expenses.reduce((s, e) => s + e.amount, 0)
-  };
-
-  const json = JSON.stringify(data, null, 2);
-  const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
-  link.setAttribute('href', url);
-  link.setAttribute('download', `hisaab_expenses_${new Date().toISOString().slice(0,10)}.json`);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  showNotification('success', 'JSON Exported', `${expenses.length} expenses exported successfully`);
-}
-
-function shareText() {
-  if (expenses.length === 0) {
-    showNotification('info', 'No Expenses', 'Add some expenses to share');
-    return;
-  }
-
-  let text = '📊 Expense Summary - Hisaab\n';
-  text += '=' .repeat(40) + '\n\n';
-  
-  text += 'Members:\n';
-  members.forEach(m => text += `• ${m.name}\n`);
-  
-  text += `\nTotal Expenses: ₨ ${formatPKR(expenses.reduce((s, e) => s + e.amount, 0))}\n`;
-  text += `Number of Expenses: ${expenses.length}\n\n`;
-
-  text += 'Balance Summary:\n';
-  const net = computeBalances();
-  members.forEach(m => {
-    const bal = net[m.id] !== undefined ? net[m.id] : 0;
-    const THRESHOLD = 0.005;
-    const status = bal > THRESHOLD ? 'gets back' : bal < -THRESHOLD ? 'owes' : 'settled';
-    const display = Math.abs(bal) < 0.005 ? '0' : formatPKR(Math.abs(bal));
-    text += `• ${m.name}: ₨ ${display} (${status})\n`;
-  });
-
-  const blob = new Blob([text], { type: 'text/plain;charset=utf-8;' });
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
-  link.setAttribute('href', url);
-  link.setAttribute('download', `hisaab_summary_${new Date().toISOString().slice(0,10)}.txt`);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  showNotification('success', 'Summary Shared', 'Expense summary exported as text file');
-}
-
-// STATS FUNCTIONS
+/* STATS */
 function renderStats() {
   const container = document.getElementById('statsContent');
-  
+
   if (!expenses.length) {
     container.innerHTML = `<div class="empty-state"><span class="empty-icon">📊</span>Add expenses to see statistics</div>`;
     return;
   }
 
-  const net = computeBalances();
   const totalAmount = expenses.reduce((s, e) => s + e.amount, 0);
   const avgExpense = totalAmount / expenses.length;
-  
-  // Category breakdown
+
   const categorySpend = {};
-  expenses.forEach(e => {
-    categorySpend[e.category] = (categorySpend[e.category] || 0) + e.amount;
-  });
-  
-  // Top payer
+  expenses.forEach(e => { categorySpend[e.category] = (categorySpend[e.category] || 0) + e.amount; });
+
   const payerSpend = {};
   expenses.forEach(e => {
     const payer = getMember(e.paidById);
@@ -1640,22 +1374,34 @@ function renderStats() {
   }
   html += '</div>';
 
-  html += '<div style="margin-top: 20px;"><h3 style="font-size: 16px; margin-bottom: 12px; color: var(--accent);">Spending by Category</h3>';
+  html += '<div style="margin-top: 20px;">' +
+    '<h3 style="font-size: 16px; margin-bottom: 12px; color: var(--accent);">Spending by Category</h3>';
+
   const sortedCategories = Object.entries(categorySpend).sort((a, b) => b[1] - a[1]);
   sortedCategories.forEach(([cat, amt]) => {
     const pct = ((amt / totalAmount) * 100).toFixed(1);
-    html += `<div style="margin-bottom: 12px;"><div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>${cat}</span><span>₨ ${formatPKR(amt)}</span></div><div style="background: var(--surface2); height: 6px; border-radius: 3px; overflow: hidden;"><div style="background: var(--accent); height: 100%; width: ${pct}%;"></div></div></div>`;
+    html += `
+      <div style="margin-bottom: 12px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+          <span>${cat}</span>
+          <span>₨ ${formatPKR(amt)}</span>
+        </div>
+        <div style="background: var(--surface2); height: 6px; border-radius: 3px; overflow: hidden;">
+          <div style="background: var(--accent); height: 100%; width: ${pct}%;"></div>
+        </div>
+      </div>
+    `;
   });
-  html += '</div>';
 
+  html += '</div>';
   container.innerHTML = html;
 }
 
-// HISTORY/ARCHIVE FUNCTIONS
+/* HISTORY */
 function archiveExpense(id) {
   const expense = expenses.find(e => e.id === id);
   if (!expense) return;
-  
+
   archivedExpenses.push({ ...expense, archivedDate: new Date().toLocaleString() });
   expenses = expenses.filter(e => e.id !== id);
   saveData();
@@ -1665,7 +1411,7 @@ function archiveExpense(id) {
 
 function renderHistory() {
   const container = document.getElementById('historyContent');
-  
+
   if (archivedExpenses.length === 0) {
     container.innerHTML = `<div class="empty-state"><span class="empty-icon">📜</span>No archived expenses yet</div>`;
     return;
@@ -1673,7 +1419,7 @@ function renderHistory() {
 
   const sortedArchived = [...archivedExpenses].reverse();
   let html = '<div class="history-container">';
-  
+
   sortedArchived.forEach(e => {
     const payer = getMember(e.paidById);
     const split = e.splitBetween.map(id => getMember(id)?.name).filter(Boolean).join(', ');
@@ -1685,12 +1431,12 @@ function renderHistory() {
       </div>
     `;
   });
-  
+
   html += '</div>';
   container.innerHTML = html;
 }
 
-// PDF EXPORT
+/* PDF EXPORT */
 function exportPDF() {
   if (expenses.length === 0) {
     showNotification('info', 'No Expenses', 'Add some expenses before exporting');
@@ -1702,21 +1448,20 @@ function exportPDF() {
   const avgExpense = totalAmount / expenses.length;
   const reportDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   const reportTime = new Date().toLocaleTimeString();
-  const docId = 'HR-' + new Date().getTime();
+  const docId = 'ER-' + new Date().getTime();
 
   const element = document.createElement('div');
   element.style.padding = '0';
   element.style.backgroundColor = 'white';
   element.style.color = '#1f2937';
   element.style.fontFamily = 'Arial, sans-serif';
+
   element.innerHTML = `
-    <!-- HEADER -->
     <div style="background: linear-gradient(135deg, #6b3d7a 0%, #8b4d9f 100%); color: white; padding: 40px 30px; text-align: center; border-bottom: 4px solid #4a2857;">
-      <div style="font-size: 32px; font-weight: 900; margin-bottom: 8px; letter-spacing: -0.5px;">HISAAB</div>
+      <div style="font-size: 32px; font-weight: 900; margin-bottom: 8px; letter-spacing: -0.5px;">EXPENSIFY</div>
       <div style="font-size: 13px; opacity: 0.95; letter-spacing: 1px; text-transform: uppercase;">Expense Management System</div>
     </div>
 
-    <!-- DOCUMENT INFO -->
     <div style="background: #f8f9fb; padding: 20px 30px; border-bottom: 1px solid #d9dfe8; display: flex; justify-content: space-between; font-size: 12px; color: #6b7280;">
       <div>
         <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">Report Generated</div>
@@ -1728,7 +1473,6 @@ function exportPDF() {
       </div>
     </div>
 
-    <!-- SUMMARY SECTION -->
     <div style="padding: 30px; border-bottom: 2px solid #e5e9f0;">
       <div style="font-size: 18px; font-weight: 700; color: #1f2937; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
         <span style="width: 4px; height: 20px; background: #6b3d7a; border-radius: 2px;"></span>
@@ -1750,7 +1494,6 @@ function exportPDF() {
       </div>
     </div>
 
-    <!-- MEMBERS SECTION -->
     <div style="padding: 30px; border-bottom: 2px solid #e5e9f0;">
       <div style="font-size: 18px; font-weight: 700; color: #1f2937; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
         <span style="width: 4px; height: 20px; background: #6b3d7a; border-radius: 2px;"></span>
@@ -1780,7 +1523,6 @@ function exportPDF() {
       </table>
     </div>
 
-    <!-- EXPENSES SECTION -->
     <div style="padding: 30px;">
       <div style="font-size: 18px; font-weight: 700; color: #1f2937; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
         <span style="width: 4px; height: 20px; background: #6b3d7a; border-radius: 2px;"></span>
@@ -1810,10 +1552,9 @@ function exportPDF() {
       </table>
     </div>
 
-    <!-- FOOTER -->
     <div style="background: #f8f9fb; padding: 24px 30px; border-top: 1px solid #d9dfe8; color: #6b7280; font-size: 11px; text-align: center;">
       <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #d9dfe8;">
-        <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">Hisaab – Expense Management System</div>
+        <div style="font-weight: 600; color: #1f2937; margin-bottom: 4px;">Expensify – Expense Management System</div>
         <div>Professional expense tracking and settlement platform</div>
       </div>
       <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; font-size: 10px;">
@@ -1822,14 +1563,14 @@ function exportPDF() {
         <div>Members: <strong>${members.length}</strong></div>
       </div>
       <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #d9dfe8; opacity: 0.7;">
-        This is an official report generated by Hisaab. All data is accurate as of the time of generation.
+        This is an official report generated by Expensify. All data is accurate as of the time of generation.
       </div>
     </div>
   `;
 
   const opt = {
     margin: [10, 10, 15, 10],
-    filename: `Hisaab_Report_${new Date().toISOString().slice(0,10)}.pdf`,
+    filename: `Expensify_Report_${new Date().toISOString().slice(0,10)}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2 },
     jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
@@ -1839,45 +1580,30 @@ function exportPDF() {
   showNotification('success', 'PDF Generated', 'Professional report downloaded successfully');
 }
 
-function showTab(name, el) {
-  ['expenses','balances','settlement','stats','history'].forEach(t => {
-    document.getElementById('tab-'+t).style.display = 'none';
-  });
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-'+name).style.display = 'block';
-  el.classList.add('active');
-  renderAll();
-  if (name === 'stats') renderStats();
-  if (name === 'history') renderHistory();
-}
-
-// Allow Enter to add members
-document.getElementById('memberInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') addMember();
-});
-
-// Initialize: Load data or show demo
+/* INIT */
 function initialize() {
   const hasData = loadData();
-  
+
   if (!hasData) {
-    // Only load demo data if no saved data exists
     ['Ahmed', 'Fatima', 'Hassan', 'Zara'].forEach(name => {
       members.push({ id: memberIdCounter++, name, color: COLORS[members.length % COLORS.length] });
     });
   }
+
   renderMembers();
   updateSelectors();
   renderAll();
 }
 
-// Run initialization when DOM is ready
+document.getElementById('memberInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addMember();
+});
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initialize);
 } else {
   initialize();
 }
-
 </script>
 </body>
 </html>
