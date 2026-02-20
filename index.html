@@ -180,6 +180,65 @@
     font-size: 16px;
   }
 
+  .mobile-menu-input-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .mobile-members-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .mobile-member-chip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.05), rgba(250, 248, 245, 0.5));
+    border: 1px solid var(--gold);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 12px;
+    color: var(--text);
+  }
+
+  .mobile-member-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .mobile-member-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 10px;
+    color: #ffffff;
+  }
+
+  .mobile-member-remove {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0;
+    transition: color 0.2s;
+  }
+
+  .mobile-member-remove:hover {
+    color: var(--red);
+  }
+
   .logo { display: flex; align-items: baseline; gap: 10px; }
   .logo-text {
     font-family: var(--font-display);
@@ -953,6 +1012,19 @@
     <button class="mobile-menu-item" onclick="exportPDF(); closeMobileMenu();"><span class="mobile-menu-item-icon">📄</span>Export PDF</button>
     <button class="mobile-menu-item" onclick="clearAllData();"><span class="mobile-menu-item-icon">🧹</span>Reset All</button>
   </div>
+  
+  <div class="mobile-menu-divider"></div>
+  
+  <div class="mobile-menu-section">
+    <div class="mobile-menu-section-title">Members</div>
+    <div class="mobile-menu-input-row">
+      <input type="text" id="mobileMemberInput" placeholder="Member name..." onkeydown="if(event.key==='Enter')addMemberMobile()" style="flex: 1; padding: 8px 10px; font-size: 13px; border: 1px solid var(--gold); border-radius: 6px; background: var(--bg); color: var(--text);">
+      <button class="btn btn-sm" onclick="addMemberMobile()" style="padding: 8px 12px; font-size: 12px;">Add</button>
+    </div>
+    <div class="mobile-members-list" id="mobileMembersList" style="margin-top: 12px;">
+      <div style="font-size: 12px; color: var(--muted); text-align: center; padding: 8px;">No members yet</div>
+    </div>
+  </div>
 </div>
 
 <div class="app">
@@ -1356,6 +1428,7 @@ function renderMembers() {
         <span style="font-size:32px;display:block;margin-bottom:8px">👥</span>
         <span style="font-size:13px">Add members to start</span>
       </div>`;
+    renderMobileMembersList();
     return;
   }
 
@@ -1368,6 +1441,8 @@ function renderMembers() {
       <button class="remove-btn" onclick="removeMember(${m.id})">✕</button>
     </div>
   `).join('');
+  
+  renderMobileMembersList();
 }
 
 function updateSelectors() {
@@ -1406,6 +1481,59 @@ function selectAllMembers() {
   members.forEach(m => selectedSplit.add(Number(m.id)));
   updateSelectors();
   showNotification('success', 'All Selected', `${members.length} members selected for split`);
+}
+
+function renderMobileMembersList() {
+  const list = document.getElementById('mobileMembersList');
+  if (!members.length) {
+    list.innerHTML = `<div style="font-size:12px;color:var(--muted);text-align:center;padding:8px;">No members yet</div>`;
+    return;
+  }
+  
+  list.innerHTML = members.map(m => `
+    <div class="mobile-member-chip">
+      <div class="mobile-member-info">
+        <div class="mobile-member-avatar" style="background:${m.color}">${m.name[0].toUpperCase()}</div>
+        <span>${m.name}</span>
+      </div>
+      <button class="mobile-member-remove" onclick="removeMemberMobile(${m.id})" title="Remove">✕</button>
+    </div>
+  `).join('');
+}
+
+function addMemberMobile() {
+  const input = document.getElementById('mobileMemberInput');
+  const name = input.value.trim();
+  if (!name) return;
+
+  if (members.find(m => m.name.toLowerCase() === name.toLowerCase())) {
+    showNotification('warning', 'Member Exists', 'This member is already in the group');
+    return;
+  }
+
+  members.push({
+    id: memberIdCounter++,
+    name,
+    color: COLORS[members.length % COLORS.length]
+  });
+
+  input.value = '';
+  saveData();
+  renderMembers();
+  updateSelectors();
+  showNotification('success', 'Member Added', `${name} has been added to the group`);
+}
+
+function removeMemberMobile(id) {
+  const member = members.find(m => m.id === id);
+  const name = member?.name || 'Member';
+  members = members.filter(m => m.id !== id);
+  selectedSplit.delete(Number(id));
+  saveData();
+  renderMembers();
+  updateSelectors();
+  renderAll();
+  showNotification('success', 'Member Removed', `${name} has been removed from the group`);
 }
 
 /* EXPENSES */
