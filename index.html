@@ -4,9 +4,15 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Expensify — Split Expenses</title>
+<meta name="description" content="Expensify — Split expenses with ease. Track group spending, settle debts, and share with QR codes.">
+<meta name="theme-color" content="#2d1b4e">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><rect width='200' height='200' fill='%236b3d7a'/><text x='100' y='115' font-family='serif' font-size='180' font-weight='900' fill='%23d4af37' text-anchor='middle' dominant-baseline='central'>E</text></svg>">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><defs><style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@900')</style></defs><rect width='200' height='200' fill='%236b3d7a'/><text x='100' y='115' font-family='Playfair Display, serif' font-size='180' font-weight='900' fill='%23d4af37' text-anchor='middle' dominant-baseline='central'>E</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
 <style>
   :root {
@@ -1092,6 +1098,321 @@
     .avatar { width: 32px !important; height: 32px !important; font-size: 13px; }
   }
 
+  /* DATE INPUT */
+  input[type="date"] {
+    background: var(--bg);
+    border: 1px solid var(--gold);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+    width: 100%;
+    cursor: pointer;
+  }
+  input[type="date"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(107, 61, 122, 0.1);
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.3) sepia(1) saturate(3) hue-rotate(250deg);
+    cursor: pointer;
+  }
+
+  /* CHART CONTAINERS */
+  .charts-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 24px;
+  }
+  .chart-card {
+    background: linear-gradient(135deg, rgba(250,248,245,0.9), rgba(241,236,231,0.6));
+    border: 1px solid var(--gold);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 16px rgba(107,61,122,0.08);
+  }
+  .chart-title {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .chart-canvas-wrap {
+    position: relative;
+    height: 240px;
+    width: 100%;
+  }
+  @media (max-width: 768px) {
+    .charts-section { grid-template-columns: 1fr; }
+    .chart-canvas-wrap { height: 200px; }
+  }
+
+  /* QR MODAL */
+  .qr-modal-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 0;
+  }
+  .qr-code-wrapper {
+    background: #fff;
+    border: 3px solid var(--gold);
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 8px 24px rgba(107,61,122,0.15);
+  }
+  .qr-info-text {
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+    max-width: 320px;
+    line-height: 1.5;
+  }
+  .qr-data-size {
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 600;
+    background: rgba(107,61,122,0.08);
+    border: 1px solid var(--gold);
+    border-radius: 6px;
+    padding: 4px 12px;
+  }
+
+  /* PWA INSTALL BUTTON */
+  #pwaInstallBtn {
+    display: none;
+    width: 100%;
+    background: linear-gradient(135deg, #d4af37 0%, #f0d98b 100%);
+    color: var(--dark);
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 6px 18px rgba(212,175,55,0.35);
+    animation: pulseGold 2s ease-in-out infinite;
+  }
+  #pwaInstallBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(212,175,55,0.5);
+  }
+  @keyframes pulseGold {
+    0%, 100% { box-shadow: 0 6px 18px rgba(212,175,55,0.35); }
+    50% { box-shadow: 0 6px 28px rgba(212,175,55,0.6); }
+  }
+
+  /* ── SPEED-DIAL FAB ────────────────────────────────────────── */
+  .fab-root {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    right: 20px;
+    z-index: 600;
+    align-items: flex-end;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* Backdrop that closes the menu on outside tap */
+  .fab-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 590;
+    background: rgba(10, 4, 24, 0.45);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .fab-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Speed-dial action items wrapper */
+  .fab-actions {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: flex-end;
+    gap: 12px;
+    margin-bottom: 16px;
+    pointer-events: none;
+  }
+
+  /* Individual action item row: icon + label */
+  .fab-action {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    transform: translateY(16px) scale(0.85);
+    transition:
+      opacity 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+      transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+  }
+  .fab-action.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+
+  /* Label chip */
+  .fab-action-label {
+    background: rgba(18, 8, 38, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(212,175,55,0.25);
+    color: rgba(235, 228, 255, 0.92);
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    user-select: none;
+  }
+
+  /* Action icon button */
+  .fab-action-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: 1px solid rgba(212,175,55,0.3);
+    background: rgba(22, 10, 42, 0.9);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    color: rgba(220,210,245,0.85);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .fab-action-btn:hover {
+    background: rgba(107,61,122,0.7);
+    border-color: var(--gold);
+    color: #f0d98b;
+    transform: scale(1.12);
+    box-shadow: 0 6px 24px rgba(107,61,122,0.5);
+  }
+  .fab-action-btn:active { transform: scale(0.93); }
+  .fab-action-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* Install special */
+  .fab-action-install .fab-action-btn {
+    border-color: rgba(212,175,55,0.6);
+    background: rgba(212,175,55,0.15);
+    color: #d4af37;
+    box-shadow: 0 0 18px rgba(212,175,55,0.25);
+  }
+
+  /* Main trigger button */
+  .fab-trigger {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(212,175,55,0.5);
+    background: linear-gradient(135deg, #3d1f5c 0%, #2d1b4e 100%);
+    color: rgba(240,217,139,0.95);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+      0 8px 28px rgba(0,0,0,0.5),
+      0 0 0 0 rgba(212,175,55,0);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    z-index: 601;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .fab-trigger:hover {
+    transform: scale(1.08);
+    box-shadow: 0 10px 32px rgba(0,0,0,0.5), 0 0 0 6px rgba(212,175,55,0.12);
+    border-color: var(--gold);
+  }
+  .fab-trigger:active { transform: scale(0.94); }
+
+  /* Trigger icon — animated hamburger → X */
+  .fab-trigger-icon {
+    width: 22px;
+    height: 22px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+  }
+  .fab-line {
+    width: 22px;
+    height: 2px;
+    background: currentColor;
+    border-radius: 2px;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    transform-origin: center;
+  }
+  /* Open state: hamburger → X */
+  .fab-root.open .fab-line:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .fab-root.open .fab-line:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  .fab-root.open .fab-line:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  /* Trigger pulse ring when closed */
+  .fab-trigger::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(212,175,55,0.25);
+    animation: fabRing 3s ease-in-out infinite;
+  }
+  .fab-root.open .fab-trigger::after { animation: none; opacity: 0; }
+  @keyframes fabRing {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.18); opacity: 0; }
+  }
+
+  @media (max-width: 900px) {
+    .fab-root { display: flex; }
+    .main { padding-bottom: 32px; }
+  }
+  @media (min-width: 901px) {
+    .fab-root { display: none !important; }
+  }
+  @media (max-width: 360px) {
+    .fab-root { bottom: 16px; right: 14px; }
+    .fab-trigger { width: 50px; height: 50px; }
+    .fab-action-btn { width: 42px; height: 42px; }
+  }
+
   /* LOADING ANIMATION */
   .loading-overlay {
     position: fixed;
@@ -1201,8 +1522,10 @@
   <div class="mobile-menu-divider"></div>
   <div class="mobile-menu-section">
     <div class="mobile-menu-section-title">Actions</div>
-    <button class="mobile-menu-item" onclick="exportPDF(); closeMobileMenu();"><span class="mobile-menu-item-icon"></span>Export PDF</button>
-    <button class="mobile-menu-item" onclick="clearAllData();"><span class="mobile-menu-item-icon"></span>Reset All</button>
+    <button class="mobile-menu-item" onclick="exportPDF(); closeMobileMenu();"><span class="mobile-menu-item-icon">📄</span> Export PDF</button>
+    <button class="mobile-menu-item" onclick="showQRModal(); closeMobileMenu();"><span class="mobile-menu-item-icon">📲</span> Share via QR</button>
+    <button class="mobile-menu-item" id="mobileInstallBtn" onclick="installPWA(); closeMobileMenu();" style="display:none;"><span class="mobile-menu-item-icon">📱</span> Install App</button>
+    <button class="mobile-menu-item" onclick="clearAllData();" style="color:var(--red);border-color:rgba(200,90,90,0.4);"><span class="mobile-menu-item-icon">🗑</span> Reset All</button>
   </div>
   
   <div class="mobile-menu-divider"></div>
@@ -1217,6 +1540,66 @@
       <div style="font-size: 12px; color: var(--muted); text-align: center; padding: 8px;">No members yet</div>
     </div>
   </div>
+</div>
+
+<!-- SPEED-DIAL FAB -->
+<div class="fab-backdrop" id="fabBackdrop" onclick="closeFab()"></div>
+
+<div class="fab-root" id="fabRoot">
+
+  <!-- Action items (hidden by default, fan upward when open) -->
+  <div class="fab-actions" id="fabActions">
+
+    <!-- Menu / Hamburger -->
+    <div class="fab-action" data-fab-item>
+      <span class="fab-action-label">Full Menu</span>
+      <button class="fab-action-btn" onclick="toggleMobileMenu(); closeFab();" title="Menu">
+        <svg viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="14" y2="17"/></svg>
+      </button>
+    </div>
+
+    <!-- QR Share -->
+    <div class="fab-action" data-fab-item>
+      <span class="fab-action-label">Share via QR</span>
+      <button class="fab-action-btn" onclick="showQRModal(); closeFab();" title="Share QR">
+        <svg viewBox="0 0 24 24">
+          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <rect x="5" y="5" width="3" height="3" fill="currentColor" stroke="none"/>
+          <rect x="16" y="5" width="3" height="3" fill="currentColor" stroke="none"/>
+          <rect x="5" y="16" width="3" height="3" fill="currentColor" stroke="none"/>
+          <path d="M14 14h3v3h-3zM17 17h3v3h-3zM17 14h3M14 17h0"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Export PDF -->
+    <div class="fab-action" data-fab-item>
+      <span class="fab-action-label">Export PDF</span>
+      <button class="fab-action-btn" onclick="exportPDF(); closeFab();" title="Export PDF">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/></svg>
+      </button>
+    </div>
+
+    <!-- Install App (hidden until browser allows) -->
+    <div class="fab-action fab-action-install" data-fab-item id="fabInstallItem" style="display:none;">
+      <span class="fab-action-label">Install App</span>
+      <button class="fab-action-btn" id="mobileFabInstallBtn" onclick="installPWA(); closeFab();" title="Install App">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="1.5"/><line x1="12" y1="8" x2="12" y2="16"/><polyline points="9 13 12 16 15 13"/></svg>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Main trigger button -->
+  <button class="fab-trigger" id="fabTrigger" onclick="toggleFab()" title="Actions">
+    <div class="fab-trigger-icon">
+      <span class="fab-line"></span>
+      <span class="fab-line"></span>
+      <span class="fab-line"></span>
+    </div>
+  </button>
+
 </div>
 
 <div class="app">
@@ -1253,8 +1636,10 @@
     <div>
       <div class="section-title">Actions</div>
       <div style="display:flex;flex-direction:column;gap:8px">
-        <button class="btn btn-sm" style="width:100%;background:linear-gradient(135deg,#5d8b6a 0%,#4a6d54 100%)" onclick="exportPDF()">PDF Export</button>
-        <button class="btn btn-sm" style="width:100%;background:linear-gradient(135deg,#c85a5a 0%,#b04949 100%)" onclick="clearAllData()">Reset All</button>
+        <button class="btn btn-sm" style="width:100%;background:linear-gradient(135deg,#5d8b6a 0%,#4a6d54 100%)" onclick="exportPDF()">📄 PDF Export</button>
+        <button class="btn btn-sm" style="width:100%;background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%)" onclick="showQRModal()">📲 Share via QR</button>
+        <button id="pwaInstallBtn" onclick="installPWA()">📱 Install App</button>
+        <button class="btn btn-sm" style="width:100%;background:linear-gradient(135deg,#c85a5a 0%,#b04949 100%)" onclick="clearAllData()">🗑 Reset All</button>
       </div>
     </div>
   </div>
@@ -1282,16 +1667,20 @@
           <div class="form-group">
             <label class="label">Category</label>
             <select id="expCategory">
-              <option value="Food">Food</option>
-              <option value="Transport">Transport</option>
-              <option value="Rent">Rent</option>
-              <option value="Groceries">Groceries</option>
-              <option value="Entertainment">Entertainment</option>
-              <option value="Medical">Medical</option>
-              <option value="Utilities">Utilities</option>
-              <option value="Travel">Travel</option>
-              <option value="Other">Other</option>
+              <option value="🍔 Food">🍔 Food</option>
+              <option value="🚗 Transport">🚗 Transport</option>
+              <option value="🏠 Rent">🏠 Rent</option>
+              <option value="🛒 Groceries">🛒 Groceries</option>
+              <option value="🎬 Entertainment">🎬 Entertainment</option>
+              <option value="💊 Medical">💊 Medical</option>
+              <option value="💡 Utilities">💡 Utilities</option>
+              <option value="✈️ Travel">✈️ Travel</option>
+              <option value="📦 Other">📦 Other</option>
             </select>
+          </div>
+          <div class="form-group">
+            <label class="label">Date</label>
+            <input type="date" id="expDate">
           </div>
         </div>
 
@@ -1398,16 +1787,20 @@
     <div class="modal-form-group">
       <label class="label">Category</label>
       <select id="editCategory">
-        <option value="Food">Food</option>
-        <option value="Transport">Transport</option>
-        <option value="Rent">Rent</option>
-        <option value="Groceries">Groceries</option>
-        <option value="Entertainment">Entertainment</option>
-        <option value="Medical">Medical</option>
-        <option value="Utilities">Utilities</option>
-        <option value="Travel">Travel</option>
-        <option value="Other">Other</option>
+        <option value="🍔 Food">🍔 Food</option>
+        <option value="🚗 Transport">🚗 Transport</option>
+        <option value="🏠 Rent">🏠 Rent</option>
+        <option value="🛒 Groceries">🛒 Groceries</option>
+        <option value="🎬 Entertainment">🎬 Entertainment</option>
+        <option value="💊 Medical">💊 Medical</option>
+        <option value="💡 Utilities">💡 Utilities</option>
+        <option value="✈️ Travel">✈️ Travel</option>
+        <option value="📦 Other">📦 Other</option>
       </select>
+    </div>
+    <div class="modal-form-group">
+      <label class="label">Date</label>
+      <input type="date" id="editDate">
     </div>
     <div class="form-actions" style="margin-top: 20px;">
       <button class="btn btn-outline" onclick="closeEditModal()">Cancel</button>
@@ -1444,6 +1837,28 @@
   </div>
 </div>
 
+<!-- QR CODE MODAL -->
+<div id="qrModal" class="modal">
+  <div class="modal-content" style="max-width:420px">
+    <div class="modal-header">
+      <span class="modal-title">📲 Share Group via QR Code</span>
+      <button class="modal-close" onclick="closeQRModal()">✕</button>
+    </div>
+    <div class="qr-modal-body">
+      <div class="qr-code-wrapper" id="qrCodeContainer"></div>
+      <div class="qr-info-text">
+        Scan this QR code with another device to instantly load this group's members and expenses into Expensify.
+      </div>
+      <div class="qr-data-size" id="qrDataSize"></div>
+      <div style="display:flex;gap:10px;width:100%;flex-wrap:wrap;">
+        <button class="btn btn-outline" onclick="closeQRModal()" style="flex:1;min-width:100px;">Close</button>
+        <button class="btn" onclick="downloadQRCode()" style="flex:1;min-width:100px;background:linear-gradient(135deg,#5d8b6a,#4a6d54);">⬇ Download</button>
+        <button class="btn" onclick="shareQRCode()" id="shareQRBtn" style="flex:1;min-width:100px;">📤 Share</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 const COLORS = ['#6b3d7a','#8b4d9f','#5d8b6a','#d4af37','#c85a5a','#a86fbf','#d9a876','#9d5d8f','#d4a574','#7b5d9e'];
 
@@ -1468,6 +1883,50 @@ function closeMobileMenu() {
   menu.classList.remove('active');
   overlay.classList.remove('active');
   document.body.style.overflow = '';
+}
+
+/* SPEED-DIAL FAB */
+function toggleFab() {
+  const root = document.getElementById('fabRoot');
+  if (root.classList.contains('open')) {
+    closeFab();
+  } else {
+    openFab();
+  }
+}
+
+function openFab() {
+  const root     = document.getElementById('fabRoot');
+  const backdrop = document.getElementById('fabBackdrop');
+  const items    = document.querySelectorAll('[data-fab-item]');
+
+  root.classList.add('open');
+  backdrop.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  // Stagger each visible item with a delay
+  let delay = 0;
+  items.forEach(item => {
+    if (item.style.display === 'none') return;
+    item.style.transitionDelay = delay + 'ms';
+    requestAnimationFrame(() => item.classList.add('visible'));
+    delay += 55;
+  });
+}
+
+function closeFab() {
+  const root     = document.getElementById('fabRoot');
+  const backdrop = document.getElementById('fabBackdrop');
+  const items    = document.querySelectorAll('[data-fab-item]');
+
+  root.classList.remove('open');
+  backdrop.classList.remove('open');
+  document.body.style.overflow = '';
+
+  items.forEach(item => {
+    item.style.transitionDelay = '0ms';
+    item.classList.remove('visible');
+  });
 }
 
 function navGoMobile(name) {
@@ -1777,8 +2236,19 @@ function clearForm() {
   document.getElementById('expDesc').value = '';
   document.getElementById('expAmount').value = '';
   document.getElementById('expPaidBy').value = '';
+  document.getElementById('expDate').value = getTodayISO();
   selectedSplit.clear();
   updateSelectors();
+}
+
+function getTodayISO() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function isoToDisplay(iso) {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-');
+  return `${d}/${m}/${y}`;
 }
 
 function addExpense() {
@@ -1790,6 +2260,7 @@ function addExpense() {
   const amount = parseFloat(rawVal);
   const paidById = Number(document.getElementById('expPaidBy').value);
   const category = document.getElementById('expCategory').value;
+  const dateISO = document.getElementById('expDate').value || getTodayISO();
 
   if (!desc) { showNotification('error', 'Missing Information', 'Please enter a description'); return; }
   if (!amount || amount <= 0) { showNotification('error', 'Invalid Amount', 'Please enter a valid amount'); return; }
@@ -1809,7 +2280,8 @@ function addExpense() {
     paidById,
     category,
     splitBetween: splitArray,
-    date: new Date().toLocaleDateString('en-GB'),
+    dateISO,
+    date: isoToDisplay(dateISO),
     paidStatus,
     archivedDate: null
   });
@@ -2156,6 +2628,7 @@ function openEditModal(expenseId) {
   document.getElementById('editDesc').value = expense.desc;
   document.getElementById('editAmount').value = expense.amount;
   document.getElementById('editCategory').value = expense.category;
+  document.getElementById('editDate').value = expense.dateISO || getTodayISO();
 
   const paidBySelect = document.getElementById('editPaidBy');
   paidBySelect.innerHTML = members
@@ -2179,6 +2652,7 @@ function saveEditedExpense() {
   const amount = parseFloat(rawVal);
   const paidById = Number(document.getElementById('editPaidBy').value);
   const category = document.getElementById('editCategory').value;
+  const dateISO = document.getElementById('editDate').value || getTodayISO();
 
   if (!desc) { showNotification('error', 'Missing Description', 'Please enter a description'); return; }
   if (!amount || amount <= 0) { showNotification('error', 'Invalid Amount', 'Please enter a valid amount'); return; }
@@ -2188,6 +2662,8 @@ function saveEditedExpense() {
   expense.amount = amount;
   expense.paidById = paidById;
   expense.category = category;
+  expense.dateISO = dateISO;
+  expense.date = isoToDisplay(dateISO);
 
   saveData();
   closeEditModal();
@@ -2195,12 +2671,15 @@ function saveEditedExpense() {
   showNotification('success', 'Expense Updated', `${desc} has been updated successfully`);
 }
 
-/* STATS */
+/* STATS — Chart.js powered */
+let chartCategory = null;
+let chartMember = null;
+
 function renderStats() {
   const container = document.getElementById('statsContent');
 
   if (!expenses.length) {
-    container.innerHTML = `<div class="empty-state"><span class="empty-icon">Stats</span>Add expenses to see statistics</div>`;
+    container.innerHTML = `<div class="empty-state"><span class="empty-icon">📊</span>Add expenses to see statistics</div>`;
     return;
   }
 
@@ -2217,6 +2696,8 @@ function renderStats() {
   });
   const topPayer = Object.entries(payerSpend).sort((a, b) => b[1] - a[1])[0];
 
+  const CHART_COLORS = ['#6b3d7a','#d4af37','#5d8b6a','#c85a5a','#8b4d9f','#d9a876','#7b5d9e','#a86fbf','#d4a574','#9d5d8f'];
+
   let html = '<div class="stats-container">';
   html += `<div class="stat-card"><div class="stat-label">Total Spent</div><div class="stat-value">₨ ${formatPKR(totalAmount)}</div></div>`;
   html += `<div class="stat-card"><div class="stat-label">Average Expense</div><div class="stat-value">₨ ${formatPKR(avgExpense)}</div></div>`;
@@ -2226,27 +2707,92 @@ function renderStats() {
   }
   html += '</div>';
 
-  html += '<div style="margin-top: 20px;">' +
-    '<h3 style="font-size: 16px; margin-bottom: 12px; color: var(--accent);">Spending by Category</h3>';
-
-  const sortedCategories = Object.entries(categorySpend).sort((a, b) => b[1] - a[1]);
-  sortedCategories.forEach(([cat, amt]) => {
-    const pct = ((amt / totalAmount) * 100).toFixed(1);
-    html += `
-      <div style="margin-bottom: 12px;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-          <span>${cat}</span>
-          <span>₨ ${formatPKR(amt)}</span>
-        </div>
-        <div style="background: var(--surface2); height: 6px; border-radius: 3px; overflow: hidden;">
-          <div style="background: var(--accent); height: 100%; width: ${pct}%;"></div>
-        </div>
+  html += `
+    <div class="charts-section">
+      <div class="chart-card">
+        <div class="chart-title">🥧 Spending by Category</div>
+        <div class="chart-canvas-wrap"><canvas id="chartCategoryCanvas"></canvas></div>
       </div>
-    `;
+      <div class="chart-card">
+        <div class="chart-title">👤 Spending per Member</div>
+        <div class="chart-canvas-wrap"><canvas id="chartMemberCanvas"></canvas></div>
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = html;
+
+  // Destroy old charts
+  if (chartCategory) { chartCategory.destroy(); chartCategory = null; }
+  if (chartMember)   { chartMember.destroy();   chartMember = null; }
+
+  // Category Pie Chart
+  const catLabels = Object.keys(categorySpend);
+  const catData   = Object.values(categorySpend);
+  chartCategory = new Chart(document.getElementById('chartCategoryCanvas'), {
+    type: 'doughnut',
+    data: {
+      labels: catLabels,
+      datasets: [{
+        data: catData,
+        backgroundColor: CHART_COLORS.slice(0, catLabels.length),
+        borderColor: '#faf8f5',
+        borderWidth: 3,
+        hoverOffset: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { family: 'DM Sans', size: 12 }, color: '#2d1b4e', padding: 12, boxWidth: 14 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.label}: ₨${formatPKR(ctx.parsed)} (${((ctx.parsed/totalAmount)*100).toFixed(1)}%)`
+          }
+        }
+      }
+    }
   });
 
-  html += '</div>';
-  container.innerHTML = html;
+  // Member Bar Chart
+  const memLabels = Object.keys(payerSpend);
+  const memData   = Object.values(payerSpend);
+  const memberColors = memLabels.map((name, i) => {
+    const m = members.find(x => x.name === name);
+    return m ? m.color : CHART_COLORS[i % CHART_COLORS.length];
+  });
+  chartMember = new Chart(document.getElementById('chartMemberCanvas'), {
+    type: 'bar',
+    data: {
+      labels: memLabels,
+      datasets: [{
+        label: 'Amount Paid (₨)',
+        data: memData,
+        backgroundColor: memberColors.map(c => c + 'cc'),
+        borderColor: memberColors,
+        borderWidth: 2,
+        borderRadius: 8,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ₨ ${formatPKR(ctx.parsed.y)}`
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#2d1b4e', font: { family: 'DM Sans' } }, grid: { color: 'rgba(212,175,55,0.1)' } },
+        y: { ticks: { color: '#8b7355', font: { family: 'DM Sans' }, callback: v => '₨' + formatPKR(v) }, grid: { color: 'rgba(212,175,55,0.15)' } }
+      }
+    }
+  });
 }
 
 /* HISTORY */
@@ -2453,25 +2999,218 @@ function exportPDF() {
   showNotification('success', 'PDF Generated', 'Professional report downloaded successfully');
 }
 
+/* QR CODE */
+function showQRModal() {
+  if (!members.length && !expenses.length) {
+    showNotification('warning', 'Nothing to Share', 'Add members or expenses first');
+    return;
+  }
+
+  const payload = { members: members.map(m => ({id:m.id,name:m.name,color:m.color})), expenses };
+  const json = JSON.stringify(payload);
+  const encoded = btoa(unescape(encodeURIComponent(json)));
+  const shareURL = window.location.href.split('?')[0] + '?data=' + encoded;
+
+  const container = document.getElementById('qrCodeContainer');
+  container.innerHTML = '';
+
+  const sizeKB = (encoded.length / 1024).toFixed(1);
+  document.getElementById('qrDataSize').textContent = `Data size: ${sizeKB} KB · ${expenses.length} expenses · ${members.length} members`;
+
+  try {
+    new QRCode(container, {
+      text: shareURL,
+      width: 220,
+      height: 220,
+      colorDark: '#2d1b4e',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  } catch(e) {
+    container.innerHTML = '<div style="color:var(--red);font-size:13px;text-align:center;padding:20px">⚠ QR code too large. Try with fewer expenses.</div>';
+  }
+
+  document.getElementById('qrModal').classList.add('active');
+}
+
+function closeQRModal() {
+  document.getElementById('qrModal').classList.remove('active');
+}
+
+function downloadQRCode() {
+  const canvas = document.querySelector('#qrCodeContainer canvas');
+  const img    = document.querySelector('#qrCodeContainer img');
+  if (canvas) {
+    const link = document.createElement('a');
+    link.download = 'expensify-group-qr.png';
+    link.href = canvas.toDataURL();
+    link.click();
+  } else if (img) {
+    const link = document.createElement('a');
+    link.download = 'expensify-group-qr.png';
+    link.href = img.src;
+    link.click();
+  } else {
+    showNotification('error', 'Download Failed', 'Could not capture QR code image');
+  }
+}
+
+async function shareQRCode() {
+  // Build the share URL (same as QR content)
+  const payload = { members: members.map(m => ({id:m.id,name:m.name,color:m.color})), expenses };
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+  const shareURL = window.location.href.split('?')[0] + '?data=' + encoded;
+
+  // Try sharing the QR image as a file (best on mobile)
+  const canvas = document.querySelector('#qrCodeContainer canvas');
+  const img    = document.querySelector('#qrCodeContainer img');
+
+  const getBlob = () => new Promise(resolve => {
+    if (canvas) {
+      canvas.toBlob(resolve, 'image/png');
+    } else if (img) {
+      fetch(img.src).then(r => r.blob()).then(resolve).catch(() => resolve(null));
+    } else {
+      resolve(null);
+    }
+  });
+
+  // Case 1: Web Share API with file support (Android Chrome, iOS Safari 15+)
+  if (navigator.share && navigator.canShare) {
+    const blob = await getBlob();
+    if (blob) {
+      const file = new File([blob], 'expensify-group-qr.png', { type: 'image/png' });
+      if (navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            title: 'Expensify Group',
+            text: `Join our Expensify group — ${members.length} members, ${expenses.length} expenses`,
+            files: [file]
+          });
+          showNotification('success', 'Shared!', 'QR code shared successfully');
+          return;
+        } catch(e) {
+          if (e.name !== 'AbortError') { /* fall through */ }
+          else return; // user cancelled
+        }
+      }
+    }
+  }
+
+  // Case 2: Web Share API without file (link only)
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: 'Expensify Group',
+        text: `Join our Expensify group — ${members.length} members, ${expenses.length} expenses. Open this link:`,
+        url: shareURL
+      });
+      showNotification('success', 'Shared!', 'Link shared successfully');
+      return;
+    } catch(e) {
+      if (e.name === 'AbortError') return; // user cancelled
+    }
+  }
+
+  // Case 3: Fallback — copy link to clipboard
+  try {
+    await navigator.clipboard.writeText(shareURL);
+    showNotification('success', 'Link Copied! 📋', 'Share link copied to clipboard — paste it anywhere');
+  } catch(e) {
+    showNotification('info', 'Share Link', shareURL.substring(0, 60) + '...');
+  }
+}
+
+function tryLoadFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const data = params.get('data');
+  if (!data) return false;
+  try {
+    const json = decodeURIComponent(escape(atob(data)));
+    const payload = JSON.parse(json);
+    if (payload.members) members = payload.members;
+    if (payload.expenses) expenses = payload.expenses;
+    memberIdCounter = Math.max(...members.map(m => m.id), ...expenses.map(e => e.id), 0) + 1;
+    saveData();
+    // Remove data param from URL
+    window.history.replaceState({}, '', window.location.pathname);
+    showNotification('success', 'Group Loaded!', `Loaded ${members.length} members and ${expenses.length} expenses from QR code`);
+    return true;
+  } catch(e) {
+    showNotification('error', 'Import Failed', 'Could not read QR data');
+    return false;
+  }
+}
+
+/* PWA */
+let deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  // Show install button everywhere
+  const ids = ['pwaInstallBtn', 'mobileFabInstallBtn', 'mobileInstallBtn'];
+  ids.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'block'; });
+  // Show install item in speed-dial
+  const item = document.getElementById('fabInstallItem');
+  if (item) item.style.display = 'flex';
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  // Hide install button everywhere
+  const ids = ['pwaInstallBtn', 'mobileFabInstallBtn', 'mobileInstallBtn'];
+  ids.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+  // Hide install item in speed-dial
+  const item = document.getElementById('fabInstallItem');
+  if (item) item.style.display = 'none';
+  showNotification('success', 'App Installed! 🎉', 'Expensify is now installed on your device');
+});
+
+function installPWA() {
+  if (!deferredInstallPrompt) {
+    showNotification('info', 'Already Installed', 'Expensify is already installed or your browser does not support installation');
+    return;
+  }
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.then(result => {
+    if (result.outcome === 'accepted') {
+      showNotification('success', 'Installing...', 'Expensify is being added to your home screen');
+    }
+    deferredInstallPrompt = null;
+  });
+}
+
 /* INIT */
 function initialize() {
-  const hasData = loadData();
-
-  if (!hasData) {
-    ['Ahmed', 'Fatima', 'Hassan', 'Zara'].forEach(name => {
-      members.push({ id: memberIdCounter++, name, color: COLORS[members.length % COLORS.length], photo: null });
-    });
+  // Register Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
   }
+
+  // Try loading from QR code URL first
+  const fromURL = tryLoadFromURL();
+
+  if (!fromURL) {
+    const hasData = loadData();
+    if (!hasData) {
+      ['Ahmed', 'Fatima', 'Hassan', 'Zara'].forEach(name => {
+        members.push({ id: memberIdCounter++, name, color: COLORS[members.length % COLORS.length], photo: null });
+      });
+    }
+  }
+
+  // Set today's date as default
+  const dateField = document.getElementById('expDate');
+  if (dateField) dateField.value = getTodayISO();
 
   renderMembers();
   updateSelectors();
   renderAll();
-  
+
   setTimeout(() => {
     const overlay = document.getElementById('loadingOverlay');
-    if (overlay) {
-      overlay.classList.add('hidden');
-    }
+    if (overlay) overlay.classList.add('hidden');
   }, 400);
 }
 
