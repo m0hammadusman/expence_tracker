@@ -38,6 +38,13 @@
   *:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
   button { -webkit-tap-highlight-color: transparent; }
 
+  html, body {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
   body {
     background: var(--bg);
     color: var(--text);
@@ -62,6 +69,7 @@
     top: 0;
     z-index: 100;
     flex-wrap: wrap;
+    width: 100%;
   }
   .hamburger-btn {
     display: none;
@@ -475,7 +483,7 @@
   }
 
   /* LAYOUT */
-  .app { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 73px); }
+  .app { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 73px); width: 100%; }
 
   /* SIDEBAR */
   .sidebar {
