@@ -302,6 +302,17 @@
   .member-name-label {
     font-weight: 600;
     font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+
+  .mobile-member-info span, .payment-status-left span, .settlement-from, .settlement-to {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
   }
 
   .member-edit-btn {
@@ -491,7 +502,13 @@
   }
 
   /* LAYOUT */
-  .app { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 73px); width: 100%; }
+  /* Base: single-column (mobile-first) */
+  .app {
+    display: grid;
+    grid-template-columns: 1fr;
+    min-height: calc(100vh - 73px);
+    width: 100%;
+  }
 
   /* SIDEBAR */
   .sidebar {
@@ -606,7 +623,19 @@
   .remove-btn:hover { color: var(--red); }
 
   /* MAIN CONTENT */
-  .main { padding: 32px 40px; display: flex; flex-direction: column; gap: 24px; }
+  .main {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0; /* prevent grid blowout */
+  }
+
+  /* FORM COLUMN — constrain width on large screens */
+  .form-col { min-width: 0; }
+
+  /* CONTENT COLUMN — tab panels */
+  .content-col { min-width: 0; }
 
   /* EXPENSE FORM */
   .expense-card {
@@ -672,6 +701,55 @@
 
   .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
 
+  /* SIDEBAR NAVIGATION (desktop permanent nav) */
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 16px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 500;
+    text-align: left;
+    transition: all 0.2s ease;
+    width: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .sidebar-nav-item:hover {
+    background: rgba(107, 61, 122, 0.08);
+    border-color: rgba(212, 175, 55, 0.35);
+    color: var(--dark);
+    transform: translateX(3px);
+  }
+
+  .sidebar-nav-item.active {
+    background: linear-gradient(135deg, var(--gold) 0%, #f0d98b 100%);
+    color: var(--dark);
+    font-weight: 700;
+    border-color: var(--gold);
+    box-shadow: 0 4px 14px rgba(212, 175, 55, 0.3);
+    transform: none;
+  }
+
+  .sidebar-nav-item-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
+  }
+
   /* EXPENSES LIST */
   .expenses-list { display: flex; flex-direction: column; gap: 12px; }
   .expense-item {
@@ -688,23 +766,31 @@
     gap: 12px;
   }
   .expense-item:hover { border-color: var(--accent); box-shadow: 0 4px 12px rgba(107, 61, 122, 0.12); }
-  .expense-actions { display: flex; gap: 6px; flex-shrink: 0; align-items: center; }
+  .expense-actions {
+    display: flex;
+    gap: 5px;
+    flex-shrink: 0;
+    align-items: center;
+    flex-wrap: nowrap; /* never wrap Edit/Delete buttons */
+  }
   .expense-actions button {
     background: rgba(107,61,122,0.08);
     border: 1px solid rgba(107,61,122,0.2);
     border-radius: 6px;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     font-family: var(--font-body);
-    padding: 5px 10px;
+    padding: 5px 9px;
     color: var(--muted);
     transition: all 0.2s;
     white-space: nowrap;
+    flex-shrink: 0;
   }
   .expense-actions button:hover { color: var(--accent); border-color: var(--accent); background: rgba(107,61,122,0.12); }
   .expense-actions .btn-delete:hover { color: var(--red); border-color: var(--red); background: rgba(200,90,90,0.08); }
-  .expense-left { display: flex; align-items: center; gap: 14px; flex: 1; }
+  .expense-left { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
+  .expense-right { display: flex; align-items: flex-end; gap: 8px; flex-direction: column; flex-shrink: 0; }
   .expense-icon {
     width: 44px; height: 44px;
     border-radius: 10px;
@@ -1020,116 +1106,226 @@
   }
   .notification.removing { animation: slideOutNotification 0.3s ease-out forwards; }
 
-  @media (max-width: 1024px) {
-    .nav-center { gap: 4px; padding: 4px; }
-    .nav-pill { padding: 8px 12px; font-size: 12px; }
-  }
 
-  @media (max-width: 900px) {
-    .app { grid-template-columns: 1fr; }
+  /* ═══════════════════════════════════════════════════════════════
+     RESPONSIVE BREAKPOINTS
+     Mobile-first: base = mobile (<768px)
+     Tablet: 768–1023px
+     Desktop: ≥1024px
+  ═══════════════════════════════════════════════════════════════ */
+
+  /* ── TABLET (768px – 1023px) ─────────────────────────────────── */
+  @media (min-width: 768px) and (max-width: 1023px) {
+    /* No sidebar on tablet — use FAB drawer */
     .sidebar { display: none; }
-    .main { padding: 20px; gap: 20px; }
-    .form-grid { grid-template-columns: 1fr; }
-    .header { padding: 14px 16px; }
-    .logo-text { font-size: 24px; }
-    .balances-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-    .stats-container { grid-template-columns: repeat(2, 1fr); }
-    .expense-item { flex-direction: row; align-items: flex-start; flex-wrap: wrap; }
-    .expense-left { width: 100%; margin-bottom: 0; flex: 1; }
-    .nav-center { display: none; }
-    .nav-left, .nav-right { min-width: auto; }
+    .app { grid-template-columns: 1fr; }
     .hamburger-btn { display: flex; }
     .mobile-menu { display: block; }
     .mobile-menu-overlay { display: block; }
+    .nav-center { display: none; }
+    .nav-left, .nav-right { min-width: auto; }
+
+    .main { padding: 20px 24px; gap: 20px; }
+
+    /* Cap the form width on tablet so inputs don't stretch across 1024px */
+    .form-col {
+      max-width: 520px;
+    }
+
+    .form-grid { grid-template-columns: 1fr 1fr; }
+    .stats-container { grid-template-columns: repeat(2, 1fr); }
+    .balances-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+    .header { padding: 14px 20px; }
+    .logo-text { font-size: 26px; }
   }
 
-  @media (max-width: 768px) {
+  /* ── DESKTOP (≥1024px) ────────────────────────────────────────── */
+  @media (min-width: 1024px) {
+    /* 2-column app: sidebar + main content */
+    .app { grid-template-columns: 280px 1fr; }
+    .sidebar {
+      display: flex;
+      position: sticky;
+      top: 72px;
+      height: calc(100vh - 72px);
+      overflow-y: auto;
+    }
+    .hamburger-btn { display: none !important; }
+    .nav-center { display: none; } /* sidebar handles nav */
+    .nav-left, .nav-right { min-width: auto; }
+
+    /* Main becomes a 2-column internal grid: form | feed */
+    .main {
+      display: grid;
+      grid-template-columns: min(450px, 42%) 1fr;
+      gap: 28px;
+      align-items: start;
+      padding: 28px 32px;
+    }
+
+    /* Hide the secondary tab bar — sidebar nav is the navigation */
+    .tabs-bar { display: none; }
+
+    /* Pinned Form column so it remains static while feed scrolls */
+    .form-col {
+      position: sticky;
+      top: 92px;
+    }
+
+    /* The content column: show all panels but still use JS to switch visibility */
+    .content-col {
+      /* Sticky scroll for the feed column */
+      position: sticky;
+      top: 92px;
+      max-height: calc(100vh - 112px);
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .content-col::-webkit-scrollbar { width: 4px; }
+    .content-col::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .form-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
+    .balances-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+    .stats-container { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+    .charts-section { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ── MOBILE ONLY (< 768px) ───────────────────────────────────── */
+  @media (max-width: 767px) {
+    .sidebar { display: none; }
+    .app { grid-template-columns: 1fr; }
+    .hamburger-btn { display: flex; }
+    .mobile-menu { display: block; }
+    .mobile-menu-overlay { display: block; }
+    .nav-center { display: none; }
+    .nav-left, .nav-right { min-width: auto; }
+  }
+
+  /* ── SMALL DETAILS across breakpoints ────────────────────────── */
+  @media (max-width: 767px) {
     .notification-container { top: 10px; right: 10px; left: 10px; }
     .notification { min-width: unset; width: 100%; margin: 0 auto; }
 
-    .sidebar { padding: 16px; gap: 16px; }
-    .stats-container { grid-template-columns: 1fr; gap: 10px; }
-    .stat-card { padding: 14px; }
-    .stat-label { font-size: 10px; margin-bottom: 6px; }
-    .stat-value { font-size: 20px; }
-
-    .total-bar { flex-direction: column; gap: 8px; text-align: center; padding: 14px; }
-    .total-amount { font-size: 24px; }
-    
-    .section-title { font-size: 16px; margin-bottom: 10px; }
-    .expense-card { padding: 16px; }
-    .member-chip { padding: 8px 10px; }
-    .input-row { gap: 6px; }
-  }
-
-  @media (max-width: 640px) {
-    .header { padding: 12px; gap: 8px; }
-    .logo-text { font-size: 20px; }
-    .logo-urdu { font-size: 11px; }
-    
     .main { padding: 12px; gap: 12px; }
-    .sidebar { padding: 12px; gap: 12px; }
-    .expense-card { padding: 12px; margin-bottom: 12px; }
     .form-grid { grid-template-columns: 1fr; gap: 12px; }
     .form-actions { flex-direction: column; gap: 8px; }
     .form-actions .btn { width: 100%; }
-    
-    .expense-item { padding: 12px; font-size: 13px; }
+
+    .section-title { font-size: 16px; margin-bottom: 10px; }
+    .expense-card { padding: 14px; }
+    .member-chip { padding: 8px 10px; }
+    .input-row { gap: 6px; }
+
+    .total-bar { flex-direction: column; gap: 8px; text-align: center; padding: 14px; }
+    .total-amount { font-size: 22px; }
+
+    .stats-container { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat-card { padding: 14px; }
+    .stat-label { font-size: 10px; margin-bottom: 6px; }
+    .stat-value { font-size: 20px; }
+    .balances-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .balance-card { padding: 14px; }
+    .balance-amount { font-size: 20px; }
+
+    .tabs { gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab { flex: none; padding: 10px 14px; font-size: 12px; white-space: nowrap; }
+
+    .expense-item {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+      padding: 12px;
+      font-size: 13px;
+    }
+    .expense-left {
+      width: 100%;
+    }
+    .expense-right {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(212, 175, 55, 0.15);
+      padding-top: 10px;
+      margin-top: 4px;
+      width: 100%;
+    }
     .expense-icon { width: 36px; height: 36px; font-size: 18px; }
     .expense-amount { font-size: 16px; }
     .expense-meta { font-size: 11px; }
-    
-    .section-title { font-size: 14px; margin-bottom: 8px; }
-    .balance-card { padding: 14px; }
-    .balance-amount { font-size: 18px; }
-    .tabs { font-size: 12px; }
-    .tab { padding: 10px 12px; }
+    .expense-actions button { padding: 4px 8px; font-size: 11px; }
+
+    .header { padding: 12px 14px; gap: 8px; }
+    .logo-text { font-size: 22px; }
+    .logo-urdu { font-size: 11px; }
+    .hamburger-btn { width: 36px; height: 36px; font-size: 18px; margin-right: 8px; }
   }
 
   @media (max-width: 480px) {
     .header { padding: 10px 12px; }
     .logo-text { font-size: 18px; }
-    .hamburger-btn { width: 36px; height: 36px; font-size: 18px; margin-right: 8px; }
+    .hamburger-btn { width: 36px; height: 36px; font-size: 18px; }
 
     .main { padding: 10px; gap: 10px; }
-    
+
     .expense-mode-toggle { margin-bottom: 16px; padding: 3px; }
     .mode-btn { padding: 8px 6px; font-size: 12px; }
-    
+
     .expense-card { padding: 10px; }
     .form-group { gap: 4px; }
     .label { font-size: 11px; }
     input[type="text"], input[type="number"], select, textarea, input[type="date"] { padding: 8px 10px; font-size: 13px; }
     .form-grid { grid-template-columns: 1fr; gap: 10px; }
     .section-title { font-size: 15px; }
-    
+
     .expense-item { padding: 10px; gap: 8px; }
     .expense-icon { width: 32px; height: 32px; font-size: 16px; }
     .expense-amount { font-size: 14px; }
-    
+
     .payment-tracker { font-size: 10px; padding: 8px; }
     .payment-status-item { padding: 4px 6px; margin-bottom: 3px; }
     .mark-paid-btn { padding: 2px 6px; font-size: 9px; }
-    
+
     .balances-grid { grid-template-columns: 1fr; gap: 10px; }
     .balance-card { padding: 12px; }
     .balance-amount { font-size: 18px; }
     .balance-member { font-size: 12px; margin-bottom: 8px; }
-    
-    .settlement-item { padding: 12px 14px; font-size: 13px; gap: 6px; }
-    .settlement-from, .settlement-to { font-size: 13px; }
+
+    .settlement-item {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 8px;
+      padding: 12px;
+      font-size: 13px;
+    }
+    .settlement-item > div:nth-child(1) {
+      justify-self: start;
+    }
+    .settlement-item > div:nth-child(2) {
+      justify-self: center;
+    }
+    .settlement-item > div:nth-child(3) {
+      justify-self: end;
+      text-align: right;
+    }
+    .settlement-item > div:nth-child(4) {
+      grid-column: 1 / -1;
+      text-align: center;
+      margin-top: 4px;
+      border-top: 1px solid rgba(212, 175, 55, 0.1);
+      padding-top: 8px;
+    }
+    .settlement-from, .settlement-to { font-size: 13px; max-width: 70px; }
     .settlement-amount { font-size: 15px; }
-    
-    .tabs { gap: 0; padding: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-    .tabs::-webkit-scrollbar { display: none; }
-    .tab { flex: none; padding: 10px 14px; font-size: 12px; white-space: nowrap; }
-    
+
     .stat-value { font-size: 18px; }
     .stat-label { font-size: 9px; }
-    
+    .stats-container { grid-template-columns: 1fr; }
+
     .modal-content { padding: 16px; }
     .modal-title { font-size: 16px; }
-    
+
     .profile-photo-preview { width: 60px; height: 60px; margin: 0 auto 8px; }
     .member-chip { padding: 8px 10px; margin-bottom: 6px; }
     .member-edit-btn { font-size: 11px; }
@@ -1139,22 +1335,22 @@
     .header { padding: 8px 10px; }
     .logo-text { font-size: 16px; }
     .hamburger-btn { width: 32px; height: 32px; font-size: 16px; }
-    
+
     .main { padding: 8px; gap: 8px; }
     .expense-card { padding: 8px; }
     input[type="text"], input[type="number"], select, textarea { padding: 6px 8px; font-size: 12px; }
     .btn { padding: 8px 12px; font-size: 12px; }
     .btn-sm { padding: 6px 10px; font-size: 11px; }
-    
+
     .expense-item { padding: 8px; }
     .expense-icon { width: 28px; height: 28px; font-size: 14px; }
     .expense-amount { font-size: 12px; }
-    
+
     .payment-tracker { font-size: 9px; padding: 6px; }
     .payment-status-item { padding: 3px 4px; margin-bottom: 2px; }
     .mark-paid-btn { padding: 1px 4px; font-size: 8px; }
     .payment-badge { padding: 1px 6px; font-size: 9px; }
-    
+
     .profile-photo-preview { width: 50px; height: 50px; margin: 0 auto 6px; }
     .member-chip { padding: 6px 8px; margin-bottom: 4px; }
     .avatar { width: 32px !important; height: 32px !important; font-size: 13px; }
@@ -1231,6 +1427,14 @@
     border-radius: 14px;
     padding: 20px;
     box-shadow: 0 8px 24px rgba(107,61,122,0.15);
+    max-width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+  }
+  .qr-code-wrapper img, .qr-code-wrapper canvas {
+    max-width: 100%;
+    height: auto !important;
   }
   .qr-info-text {
     font-size: 13px;
@@ -1461,11 +1665,12 @@
     50% { transform: scale(1.18); opacity: 0; }
   }
 
-  @media (max-width: 900px) {
+  /* FAB: show on mobile + tablet (below desktop threshold) */
+  @media (max-width: 1023px) {
     .fab-root { display: flex; }
     .main { padding-bottom: 32px; }
   }
-  @media (min-width: 901px) {
+  @media (min-width: 1024px) {
     .fab-root { display: none !important; }
   }
   @media (max-width: 400px) {
@@ -1681,6 +1886,26 @@
 <div class="app">
   <!-- SIDEBAR -->
   <div class="sidebar">
+
+    <!-- Desktop Navigation (permanent sidebar nav) -->
+    <nav class="sidebar-nav" id="sidebarNav" aria-label="Sidebar Navigation">
+      <div class="section-title">Navigate</div>
+      <button class="sidebar-nav-item active" id="snav-expenses" onclick="navGoSidebar('expenses', this)">
+        <span class="sidebar-nav-item-icon">💰</span> Expenses
+      </button>
+      <button class="sidebar-nav-item" id="snav-balances" onclick="navGoSidebar('balances', this)">
+        <span class="sidebar-nav-item-icon">⚖️</span> Balances
+      </button>
+      <button class="sidebar-nav-item" id="snav-settlement" onclick="navGoSidebar('settlement', this)">
+        <span class="sidebar-nav-item-icon">🤝</span> Settlement
+      </button>
+      <button class="sidebar-nav-item" id="snav-stats" onclick="navGoSidebar('stats', this)">
+        <span class="sidebar-nav-item-icon">📊</span> Stats
+      </button>
+      <button class="sidebar-nav-item" id="snav-history" onclick="navGoSidebar('history', this)">
+        <span class="sidebar-nav-item-icon">🕒</span> History
+      </button>
+    </nav>
     <div>
       <div class="section-title">Group Members</div>
       <div class="input-row" style="margin-bottom:12px">
@@ -1723,8 +1948,8 @@
   <!-- MAIN -->
   <div class="main">
 
-    <!-- Add Expense -->
-    <div>
+    <!-- Form Column: Add Expense card -->
+    <div class="form-col">
       <div class="section-title" style="margin-bottom:16px">Add Expense</div>
       <div class="expense-card">
         <div class="expense-mode-toggle">
@@ -1784,16 +2009,20 @@
           <button class="btn" id="btnAddExpense" onclick="addExpense()">Add Expense ₨</button>
         </div>
       </div>
-    </div>
+    </div><!-- /.form-col -->
 
-    <!-- Tabs fallback (mobile + if header pills hidden) -->
-    <div>
-      <div class="tabs" style="margin-bottom:20px">
-        <button class="tab active" onclick="showTab('expenses',this); syncNavFromTab('expenses')">Expenses</button>
-        <button class="tab" onclick="showTab('balances',this); syncNavFromTab('balances')">Balances</button>
-        <button class="tab" onclick="showTab('settlement',this); syncNavFromTab('settlement')">Settlement</button>
-        <button class="tab" onclick="showTab('stats',this); syncNavFromTab('stats')">Stats</button>
-        <button class="tab" onclick="showTab('history',this); syncNavFromTab('history')">History</button>
+    <!-- Content Column: tab bar + tab panels -->
+    <div class="content-col">
+
+      <!-- Tab bar (hidden on desktop, sidebar nav used instead) -->
+      <div class="tabs-bar">
+        <div class="tabs" style="margin-bottom:20px">
+          <button class="tab active" onclick="showTab('expenses',this); syncNavFromTab('expenses')">Expenses</button>
+          <button class="tab" onclick="showTab('balances',this); syncNavFromTab('balances')">Balances</button>
+          <button class="tab" onclick="showTab('settlement',this); syncNavFromTab('settlement')">Settlement</button>
+          <button class="tab" onclick="showTab('stats',this); syncNavFromTab('stats')">Stats</button>
+          <button class="tab" onclick="showTab('history',this); syncNavFromTab('history')">History</button>
+        </div>
       </div>
 
       <!-- EXPENSES TAB -->
@@ -1845,10 +2074,10 @@
           </div>
         </div>
       </div>
-    </div>
+      </div><!-- /.content-col -->
 
-  </div>
-</div>
+  </div><!-- /.main -->
+</div><!-- /.app -->
 
 <!-- EDIT EXPENSE MODAL -->
 <div id="editModal" class="modal">
@@ -2037,13 +2266,13 @@ function closeFab() {
 
 function navGoMobile(name) {
   closeMobileMenu();
-  
+
   // Update active pill in desktop nav
   const pills = document.querySelectorAll('.nav-pill');
   const tabMap = { expenses: 0, balances: 1, settlement: 2, stats: 3, history: 4 };
   const pill = pills[tabMap[name]];
   if (pill) navGo(name, pill);
-  
+
   // Update active state in mobile menu
   const menuItems = document.querySelectorAll('.mobile-menu-item');
   menuItems.forEach((item, idx) => {
@@ -2053,6 +2282,26 @@ function navGoMobile(name) {
       item.classList.remove('active');
     }
   });
+
+  // Sync sidebar nav
+  syncSidebarNav(name);
+}
+
+/* DESKTOP SIDEBAR NAVIGATION */
+function navGoSidebar(name, btn) {
+  // Switch the active tab panel
+  showTab(name, null);
+  // Update sidebar active state
+  syncSidebarNav(name);
+  // Sync the secondary tab bar buttons
+  syncNavFromTab(name);
+}
+
+/* Update which sidebar nav item is highlighted */
+function syncSidebarNav(name) {
+  document.querySelectorAll('.sidebar-nav-item').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('snav-' + name);
+  if (btn) btn.classList.add('active');
 }
 
 /* NOTIFICATIONS */
@@ -2199,6 +2448,8 @@ function syncNavFromTab(name) {
     document.querySelectorAll('.nav-pill').forEach(b => b.classList.remove('active'));
     pills[idx].classList.add('active');
   }
+  // Also sync sidebar nav on all screen sizes
+  syncSidebarNav(name);
 }
 
 /* MEMBERS */
@@ -2624,7 +2875,7 @@ function renderExpenses() {
             ${allPaid ? '<div style="font-size:11px;color:#5d8b6a;font-weight:600;margin-top:8px;"> All payments received - Ready to archive</div>' : ''}
           </div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-direction:column;">
+        <div class="expense-right">
           <div class="expense-amount">₨ ${formatPKR(e.amount)}</div>
           <div class="expense-actions">
             <button class="btn-edit" onclick="openEditModal(${e.id})" title="Edit">Edit</button>
@@ -2781,14 +3032,17 @@ function showTab(name, el) {
     if (tabEl) tabEl.style.display = 'none';
   });
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  
+
   const targetTab = document.getElementById('tab-'+name);
   if (targetTab) targetTab.style.display = 'block';
-  
+
   if (el && el.classList) el.classList.add('active');
-  
+
+  // Always sync the sidebar nav when a tab changes
+  syncSidebarNav(name);
+
   renderAll();
-  
+
   // Use setTimeout to ensure DOM has updated (crucial for Chart.js dimensions)
   if (name === 'stats') {
     setTimeout(renderStats, 10);
