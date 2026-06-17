@@ -12,6 +12,11 @@ A modern, browser-based expense tracking application designed to simplify the pr
 - Support for equal and custom splits
 - Pick any date for each expense with the built-in date picker
 
+💸 **Direct 1-to-1 Transfers & Debts**
+- Record direct cash transfers or 1-to-1 debts (e.g. Usman owes Ali 500)
+- Toggle between **Group Expense** and **Direct Transfer** in the Add Expense card
+- Automatically calculates balances and settlements without complex setups
+
 👥 **Member Management**
 - Add multiple participants to expense groups
 - Store member profiles with custom avatar photos
