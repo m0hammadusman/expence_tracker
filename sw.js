@@ -1,5 +1,5 @@
 /* Expensify Service Worker — Cache-First Strategy */
-const CACHE_NAME = 'expensify-v2';
+const CACHE_NAME = 'expensify-v3';
 const ASSETS = [
   './',
   './index.html',
