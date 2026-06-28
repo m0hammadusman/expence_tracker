@@ -1492,6 +1492,7 @@
     align-items: flex-end;
     flex-direction: column;
     gap: 0;
+    transition: opacity 0.3s ease;
   }
 
   /* Backdrop that closes the menu on outside tap */
@@ -2958,30 +2959,36 @@ function renderSettlement() {
     return;
   }
 
-  const net = computeBalances();
-  const THRESHOLD = 0.005;
-
-  const debtors = [];
-  const creditors = [];
-
-  Object.entries(net).forEach(([id, bal]) => {
-    const b = Math.round(bal * 100) / 100;
-    if (b > THRESHOLD) creditors.push({ id: Number(id), amt: b });
-    else if (b < -THRESHOLD) debtors.push({ id: Number(id), amt: -b });
-  });
-
+  // Calculate direct, un-netted outstanding debts for each pair of members
   const transactions = [];
-  const d = debtors.map(x => ({ ...x }));
-  const c = creditors.map(x => ({ ...x }));
 
-  let i = 0, j = 0;
-  while (i < d.length && j < c.length) {
-    const amount = Math.round(Math.min(d[i].amt, c[j].amt) * 100) / 100;
-    if (amount > THRESHOLD) transactions.push({ from: d[i].id, to: c[j].id, amount });
-    d[i].amt = Math.round((d[i].amt - amount) * 100) / 100;
-    c[j].amt = Math.round((c[j].amt - amount) * 100) / 100;
-    if (d[i].amt <= THRESHOLD) i++;
-    if (c[j].amt <= THRESHOLD) j++;
+  for (let dIdx = 0; dIdx < members.length; dIdx++) {
+    for (let cIdx = 0; cIdx < members.length; cIdx++) {
+      if (dIdx === cIdx) continue;
+      const debtorId = members[dIdx].id;
+      const creditorId = members[cIdx].id;
+      let totalDebt = 0;
+
+      expenses.forEach(e => {
+        // Only count if paid by creditor and split includes debtor
+        if (e.paidById === creditorId && e.splitBetween.includes(debtorId)) {
+          const paidStatus = e.paidStatus || {};
+          // Check if this debtor's share is unpaid
+          if (paidStatus[debtorId] === false) {
+            const share = e.amount / e.splitBetween.length;
+            totalDebt += share;
+          }
+        }
+      });
+
+      if (totalDebt > 0.005) {
+        transactions.push({
+          from: debtorId,
+          to: creditorId,
+          amount: Math.round(totalDebt * 100) / 100
+        });
+      }
+    }
   }
 
   if (!transactions.length) {
@@ -2990,7 +2997,7 @@ function renderSettlement() {
   }
 
   container.innerHTML = `
-    <div style="margin-bottom:16px;font-size:13px;color:var(--muted)">${transactions.length} payment${transactions.length > 1 ? 's' : ''} needed to settle all debts</div>
+    <div style="margin-bottom:16px;font-size:13px;color:var(--muted)">${transactions.length} outstanding payment${transactions.length > 1 ? 's' : ''} due</div>
     <div class="settlement-list">
       ${transactions.map(t => {
         const from = getMember(t.from);
@@ -3618,12 +3625,153 @@ function installPWA() {
   });
 }
 
+/* DRAGGABLE FAB */
+function setupDraggableFab() {
+  const fabRoot = document.getElementById('fabRoot');
+  const fabTrigger = document.getElementById('fabTrigger');
+  if (!fabRoot || !fabTrigger) return;
+
+  let isDragging = false;
+  let dragOccurred = false;
+  let startX = 0;
+  let startY = 0;
+  let initialLeft = 0;
+  let initialBottom = 0;
+  let triggerWidth = 56;
+  let triggerHeight = 56;
+  let opacityTimeout = null;
+
+  function fadeToIdle() {
+    clearTimeout(opacityTimeout);
+    if (fabRoot.classList.contains('open')) return;
+    opacityTimeout = setTimeout(() => {
+      fabRoot.style.opacity = '0.5';
+    }, 1500);
+  }
+
+  function makeActive() {
+    clearTimeout(opacityTimeout);
+    fabRoot.style.opacity = '1';
+  }
+
+  // Wrap openFab and closeFab to sync opacity automatically
+  if (window.openFab) {
+    const originalOpenFab = window.openFab;
+    window.openFab = function() {
+      originalOpenFab();
+      makeActive();
+    };
+  }
+  if (window.closeFab) {
+    const originalCloseFab = window.closeFab;
+    window.closeFab = function() {
+      originalCloseFab();
+      fadeToIdle();
+    };
+  }
+
+  function onDragStart(e) {
+    if (fabRoot.classList.contains('open')) return;
+
+    makeActive();
+    const rect = fabRoot.getBoundingClientRect();
+    triggerWidth = rect.width;
+    triggerHeight = rect.height;
+    
+    startX = e.clientX || (e.touches && e.touches[0].clientX);
+    startY = e.clientY || (e.touches && e.touches[0].clientY);
+    initialLeft = rect.left;
+    initialBottom = window.innerHeight - rect.bottom;
+    dragOccurred = false;
+
+    if (e.type === 'touchstart') {
+      document.addEventListener('touchmove', onDragMove, { passive: false });
+      document.addEventListener('touchend', onDragEnd);
+    } else {
+      document.addEventListener('mousemove', onDragMove);
+      document.addEventListener('mouseup', onDragEnd);
+    }
+  }
+
+  function onDragMove(e) {
+    const currentX = e.clientX || (e.touches && e.touches[0].clientX);
+    const currentY = e.clientY || (e.touches && e.touches[0].clientY);
+    const dx = currentX - startX;
+    const dy = currentY - startY;
+
+    if (!dragOccurred && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
+      dragOccurred = true;
+      isDragging = true;
+    }
+
+    if (isDragging) {
+      if (e.cancelable) e.preventDefault();
+      makeActive();
+      let newLeft = initialLeft + dx;
+      let newBottom = initialBottom - dy;
+
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const margin = 15;
+
+      newLeft = Math.max(margin, Math.min(newLeft, viewportWidth - triggerWidth - margin));
+      newBottom = Math.max(margin, Math.min(newBottom, viewportHeight - triggerHeight - margin));
+
+      fabRoot.style.left = newLeft + 'px';
+      fabRoot.style.bottom = newBottom + 'px';
+      fabRoot.style.right = 'auto';
+
+      if (newLeft > viewportWidth / 2) {
+        fabRoot.style.alignItems = 'flex-end';
+      } else {
+        fabRoot.style.alignItems = 'flex-start';
+      }
+    }
+  }
+
+  function onDragEnd(e) {
+    document.removeEventListener('mousemove', onDragMove);
+    document.removeEventListener('mouseup', onDragEnd);
+    document.removeEventListener('touchmove', onDragMove);
+    document.removeEventListener('touchend', onDragEnd);
+
+    fadeToIdle();
+
+    if (isDragging) {
+      setTimeout(() => {
+        isDragging = false;
+        dragOccurred = false;
+      }, 100);
+    }
+  }
+
+  fabTrigger.addEventListener('mousedown', onDragStart);
+  fabTrigger.addEventListener('touchstart', onDragStart, { passive: true });
+
+  fabRoot.addEventListener('mouseenter', makeActive);
+  fabRoot.addEventListener('mouseleave', fadeToIdle);
+  fabRoot.addEventListener('touchstart', makeActive, { passive: true });
+  fabRoot.addEventListener('touchend', fadeToIdle);
+
+  fabTrigger.addEventListener('click', (e) => {
+    if (dragOccurred || isDragging) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
+
+  fadeToIdle();
+}
+
 /* INIT */
 function initialize() {
   // Register Service Worker
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
+
+  // Setup draggable FAB
+  setupDraggableFab();
 
   // Try loading from QR code URL first
   const fromURL = tryLoadFromURL();
